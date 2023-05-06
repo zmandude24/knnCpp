@@ -20,1204 +20,22 @@
 
 #define _USE_MATH_DEFINES
 
+using namespace std;
+
 #include <cmath>
 #include <exception>
 #include <iostream>
 #include <string>
-
-
-/// <summary>
-/// A phasor representation of a sinusoidal AC parameter with the rms value (base units) and the phase angle (degrees). A phasor is a 
-/// complex number with real and imaginary parts.
-/// </summary>
-class phasor {
-private:
-    /// <summary>
-    /// Real part of the complex number
-    /// </summary>
-    double real = 0;
-    /// <summary>
-    /// Imaginary part of the complex number
-    /// </summary>
-    double imaginary = 0;
-    /// <summary>
-    /// Recalculate 'real' and 'imaginary' from new values of 'rms_value' and 'phase_angle_degrees'
-    /// </summary>
-    void UpdateRealAndImag()
-    {
-        real = RMSvalue * cos(M_PI / 180 * PhaseAngleDegrees);
-        imaginary = RMSvalue * sin(M_PI / 180 * PhaseAngleDegrees);
-    }
-    /// <summary>
-    /// Recalculate 'rms_value' and 'phase_angle_degrees' from new values of 'real' and 'imaginary'
-    /// </summary>
-    void UpdateRMSandPhase()
-    {
-        RMSvalue = hypot(real, imaginary);
-
-        if (real == 0) {   // special case to avoid division by zero
-            if (imaginary < 0) PhaseAngleDegrees = -90;       // phasor is on border of Q3 and Q4
-            else if (imaginary > 0) PhaseAngleDegrees = 90;   // phasor is on border of Q1 and Q2
-            else PhaseAngleDegrees = 0;                       // This is the zero phasor case
-        }
-        else {
-            PhaseAngleDegrees = 180 / M_PI * atan(imaginary / real);
-            if (real < 0) {
-                if (imaginary >= 0) PhaseAngleDegrees += 180; // phasor should be in Q2 and atan would've put it in Q4
-                else PhaseAngleDegrees -= 180;                // phasor should be in Q3 and atan would've put it in Q1
-            }
-        }
-    }
-
-public:
-    /// <summary>
-    /// magnitude of the complex number
-    /// </summary>
-    double RMSvalue = 0;
-    /// <summary>
-    /// phase angle of the complex number
-    /// </summary>
-    double PhaseAngleDegrees = 0;
-
-    /// <summary>
-    /// The default constructor setting all class variable to their defaults.
-    /// </summary>
-    phasor() {}
-    /// <summary>
-    /// This is the polar form constructor.
-    /// </summary>
-    /// <param name="rmsValue">The magnitude of the complex number</param>
-    /// <param name="phaseAngleDegrees">The phase angle of the complex number</param>
-    phasor(double rmsValue, double phaseAngleDegrees)
-    {
-        RMSvalue = rmsValue;
-        PhaseAngleDegrees = phaseAngleDegrees;
-        UpdateRealAndImag();
-    }
-
-    /// <summary>
-    /// Print the phasor in polar form.
-    /// </summary>
-    void Print()
-    {
-        std::cout << RMSvalue << " @ " << PhaseAngleDegrees << "deg\n";
-    }
-    /// <summary>
-    /// Returns a string in the same format PrintPhasor() prints to the terminal (without the new line character at the end)
-    /// </summary>
-    /// <returns>The phasor in printable string form</returns>
-    std::string PhasorToString()
-    {
-        return std::to_string(RMSvalue) + " @ " + std::to_string(PhaseAngleDegrees) + "deg";
-    }
-
-    /// <summary>
-    /// Use '+' to add two phasors together like you would with two numbers.
-    /// </summary>
-    phasor operator+(const phasor& p2)
-    {
-        phasor sum;
-        sum.real = this->real + p2.real;
-        sum.imaginary = this->imaginary + p2.imaginary;
-        sum.UpdateRMSandPhase();
-        return sum;
-    }
-    /// <summary>
-    /// Use '-' to subtract the right phasor from the left phasor like you would with two numbers.
-    /// </summary>
-    phasor operator-(const phasor& p2)
-    {
-        phasor difference;
-        difference.real = this->real - p2.real;
-        difference.imaginary = this->imaginary - p2.imaginary;
-        difference.UpdateRMSandPhase();
-        return difference;
-    }
-    /// <summary>
-    /// Use '*' to multiply two phasors like you would with two numbers.
-    /// </summary>
-    phasor operator*(const phasor& p2)
-    {
-        phasor product;
-        product.RMSvalue = this->RMSvalue * p2.RMSvalue;
-        product.PhaseAngleDegrees = this->PhaseAngleDegrees + p2.PhaseAngleDegrees;
-
-        // Keep -180deg < phase_angle_degrees <= 180deg
-        while (product.PhaseAngleDegrees > 180) product.PhaseAngleDegrees -= 360;
-        while (product.PhaseAngleDegrees <= -180) product.PhaseAngleDegrees += 360;
-
-        product.UpdateRealAndImag();
-        return product;
-    }
-    /// <summary>
-    /// Use '/' to divide the left phasor by the right phasor like you would with two numbers. In the division by zero case, an
-    /// error message will be printed and the zero phasor will be returned.
-    /// </summary>
-    phasor operator/(const phasor& p2)
-    {
-        phasor quotient(0, 0);
-
-        try {   // Handle the divide by zero exception
-            if (p2.RMSvalue == 0) throw 360;
-
-            quotient.RMSvalue = this->RMSvalue / p2.RMSvalue;
-            quotient.PhaseAngleDegrees = this->PhaseAngleDegrees - p2.PhaseAngleDegrees;
-
-            // Keep -180deg < phase_angle_degrees <= 180deg
-            while (quotient.PhaseAngleDegrees > 180) quotient.PhaseAngleDegrees -= 360;
-            while (quotient.PhaseAngleDegrees <= -180) quotient.PhaseAngleDegrees += 360;
-        }
-        catch (int e) {
-            if (e == 360) std::cout << "Error: Divisor phasor is 0.\n";
-            else std::cout << "Exception number " << e << " has occured.\n";
-            quotient.RMSvalue = 0;
-            quotient.PhaseAngleDegrees = 0;
-        }
-
-        quotient.UpdateRealAndImag();
-        return quotient;
-    }
-    /// <summary>
-    /// Raise a phasor to a power. In the zero phasor by a non-zero power case, an error message is printed and the zero phasor is
-    /// returned.
-    /// </summary>
-    /// <param name="base">The phasor to be raised to a power</param>
-    /// <param name="power">The exponent or power to raise the phasor to</param>
-    /// <returns>The phasor with the power applied</returns>
-    phasor Pow(phasor base, double power)
-    {
-        phasor exponent = phasor(0, 0);
-
-        try {   // Handle the case with the 0 phasor to a nonpositive power
-            if ((base.RMSvalue == 0) && (power <= 0)) throw 360;
-
-            exponent.RMSvalue = pow(base.RMSvalue, power);
-            exponent.PhaseAngleDegrees = base.PhaseAngleDegrees * power;
-
-            // Keep -180deg < phase_angle_degrees <= 180deg
-            while (exponent.PhaseAngleDegrees > 180) exponent.PhaseAngleDegrees -= 360;
-            while (exponent.PhaseAngleDegrees <= -180) exponent.PhaseAngleDegrees += 360;
-        }
-        catch (int e) {
-            if (e == 360) std::cout << "Error: Base is 0 and power is non-positive.\n";
-            else std::cout << "Exception number " << e << " has occured.\n";
-            exponent.RMSvalue = 0;
-            exponent.PhaseAngleDegrees = 0;
-        }
-
-        exponent.UpdateRealAndImag();
-        return exponent;
-    }
-};
-
-
-/// <summary>
-/// An instantaneous measurement of a voltage or current at an exact time
-/// </summary>
-struct instantaneousMeasurement {
-    /// <summary>
-    /// The time in seconds
-    /// </summary>
-    double time;
-    /// <summary>
-    /// The instantaneous measurement in base units
-    /// </summary>
-    double value;
-};
-
-
-/// <summary>
-/// A parameter of interest in the power grid like a node voltage or line current.
-/// </summary>
-class parameter {
-private:
-    /// <summary>
-    /// Find the phasor representation of the data in 'samples' that is assumed to be perfectly sinusoidal.
-    /// </summary>
-    phasor CalculatePhasor()
-    {
-        if (NumberOfSamples <= 1) {
-            std::cout << "Insufficient number of samples to calculate a phasor.\n";
-            return phasor();
-        }
-        return phasor(RMS(), PhaseAngleDegrees(RMS()));
-    }
-    /// <summary>
-    /// The Root Mean Square is calculated with the formula RMS = sqrt(1/n * SUM(xi^2)) where n is the number of samples and xi is
-    /// the ith sample.
-    /// </summary>
-    /// <returns> The RMS value of the values in 'samples'</returns>
-    double RMS()
-    {
-        double rms = 0;
-        for (int i = 0; i < NumberOfSamples; i++) rms += pow(Samples[i].value, 2);
-        if (NumberOfSamples > 0) rms = sqrt(rms / NumberOfSamples);
-        return rms;
-    }
-    /// <summary>
-    /// The phase angle is calculated from the first data point or time = 0 by finding if the sine wave is increasing or decreasing and 
-    /// then calculating the arcsine while adjusting if the phase angle is in the second or third quadrant.
-    /// </summary>
-    /// <param name="rms">The RMS value of the values found by RMS()</param>
-    /// <returns>The phase angle of the phasor representation of the values in 'samples' in degrees</returns>
-    double PhaseAngleDegrees(double rms)
-    {
-        double phaseAngleDegrees = 0;
-
-        // Count the phase angle as 90 or -90 if the first point's magnitude is greater than the peak.
-        if (Samples[0].value >= rms * sqrt(2)) phaseAngleDegrees = 90;
-        else if (Samples[0].value <= -rms * sqrt(2)) phaseAngleDegrees = -90;
-
-        // Ascending
-        else if (Samples[1].value >= Samples[0].value) {
-            phaseAngleDegrees = 180 / M_PI * asin(Samples[0].value / (rms * sqrt(2)));
-        }
-
-        // Descending
-        else {
-            // Belongs in Q2
-            if (Samples[0].value >= 0) {
-                phaseAngleDegrees = 180 - 180 / M_PI * asin(Samples[0].value / (rms * sqrt(2)));
-            }
-
-            // Belongs in Q4
-            else phaseAngleDegrees = -180 - 180 / M_PI * asin(Samples[0].value / (rms * sqrt(2)));
-        }
-
-        return phaseAngleDegrees;
-    }
-
-    /// <summary>
-    /// Free the dynamically allocated memory and set their pointers to NULL.
-    /// </summary>
-    void FreeMemory()
-    {
-        if (Samples != NULL) {
-            delete[] Samples;
-            Samples = NULL;
-        }
-    }
-
-    /// <summary>
-    /// Display an error message and call FreeMemory().
-    /// </summary>
-    /// <param=variableName>The name of the variable that failed to get memory allocation</param>
-    void MemoryAllocationFailure(std::string variableName)
-    {
-        std::cout << "Error: node() failed to allocate memory for " << variableName << "\n";
-        FreeMemory();
-    }
-
-public:
-    /// <summary>
-    /// A dynamically allocated array of the samples.
-    /// </summary>
-    instantaneousMeasurement* Samples = NULL;
-    /// <summary>
-    /// The number of samples allocated in 'samples'
-    /// </summary>
-    int NumberOfSamples = 0;
-    /// <summary>
-    /// The phasor representation of the data in 'samples'
-    /// </summary>
-    phasor Phasor = phasor(0, 0);
-    /// <summary>
-    /// The name of the parameter
-    /// </summary>
-    std::string Name = "";
-    /// <summary>
-    /// The base unit name
-    /// </summary>
-    std::string Units = "";
-    /// <summary>
-    /// The number of the starting node (0 is ground).
-    /// </summary>
-    int StartNodeNumber = 0;
-    /// <summary>
-    /// The number of the destination node (0 is ground).
-    /// </summary>
-    int DestinationNodeNumber = 0;
-
-    /// <summary>
-    /// The default constructor setting all values to their defaults
-    /// </summary>
-    parameter() {}
-    /// <summary>
-    /// This constructor calculates the phasor from the array of instantaneous measurements.
-    /// </summary>
-    /// <param name="samples">The array of instantaneous measurements</param>
-    /// <param name="numberOfSamples">The number of elements in the array or instantaneous measurements</param>
-    /// <param name="name">The name to be used for the parameter</param>
-    /// <param name="units">The base unit suffix</param>
-    /// <param name="startNodeNumber">The starting node number (0 is ground)</param>
-    /// <param name="destinationNodeNumber">The destination node number (0 is ground)</param>
-    parameter(instantaneousMeasurement* samples, int numberOfSamples, std::string name = "", std::string units = "",
-        int startNodeNumber = 0, int destinationNodeNumber = 0)
-    {
-        Samples = samples;
-        NumberOfSamples = numberOfSamples;
-        Phasor = CalculatePhasor();
-        Name = name;
-        Units = units;
-        StartNodeNumber = startNodeNumber;
-        DestinationNodeNumber = destinationNodeNumber;
-    }
-    /// <summary>
-    /// This constructor doesn't involve a set of instantaneous measurements.
-    /// </summary>
-    /// <param name="phasorr">The phasor representation of the parameter</param>
-    /// <param name="name">The name to be used for the parameter</param>
-    /// <param name="units">The base unit suffix</param>
-    /// <param name="startNodeNumber">The starting node number (0 is ground)</param>
-    /// <param name="destinationNodeNumber">The destination node number (0 is ground)</param>
-    parameter(phasor phasorr, std::string name = "", std::string units = "",
-        int startNodeNumber = 0, int destinationNodeNumber = 0)
-    {
-        Samples = NULL;
-        NumberOfSamples = 0;
-        Phasor = phasorr;
-        Name = name;
-        Units = units;
-        StartNodeNumber = startNodeNumber;
-        DestinationNodeNumber = destinationNodeNumber;
-    }
-    /// <summary>
-    /// This will free everything in its pointers
-    /// </summary>
-    ~parameter()
-    {
-        FreeMemory();
-    }
-
-    /// <summary>
-    /// Print the name, number of samples, phasor, and the starting and destination node numbers.
-    /// </summary>
-    void PrintParameter()
-    {
-        std::cout << "\nName: " << Name << "\n";
-        std::cout << "Number of samples: " << NumberOfSamples << "\n";
-        std::cout << "Phasor: " << Phasor.PhasorToString() << Units << "\n";
-        std::cout << "Starting Node: " << std::to_string(StartNodeNumber) + "\n";
-        std::cout << "Destination Node: " << std::to_string(DestinationNodeNumber) + "\n";
-    }
-};
-
-
-/// <summary>
-/// The data representation of a point on the grid in a specified time range with the voltage and the currents coming from it
-/// </summary>
-class nodeSample {
-private:
-    /// <summary>
-    /// Free the dynamically allocated memory and set their pointers to NULL.
-    /// </summary>
-    void FreeMemory()
-    {
-        if (Voltage != NULL) {
-            delete Voltage;
-            Voltage = NULL;
-        }
-
-        if (Currents != NULL) {
-            for (int deletingIndex = 0; deletingIndex < NumberOfCurrents; deletingIndex++) {
-                if (Currents[deletingIndex] != NULL) {
-                    delete Currents[deletingIndex];
-                    Currents[deletingIndex] = NULL;
-                }
-            }
-            delete[] Currents;
-            Currents = NULL;
-        }
-    }
-
-    /// <summary>
-    /// Display an error message and call FreeMemory().
-    /// </summary>
-    /// <param=variableName>The name of the variable that failed to get memory allocation</param>
-    void MemoryAllocationFailure(std::string variableName)
-    {
-        std::cout << "Error: node() failed to allocate memory for " << variableName << "\n";
-        FreeMemory();
-    }
-public:
-    /// <summary>
-    /// The unique identifying number for the node
-    /// </summary>
-    int NodeNumber = 0;
-    /// <summary>
-    /// The pointer to the node voltage (startNodeNum = nodeNum and destNodeNum = 0)
-    /// </summary>
-    parameter* Voltage = NULL;
-    /// <summary>
-    /// The pointer to the currents (startNodeNum = nodeNum)
-    /// </summary>
-    parameter** Currents = NULL;
-    /// <summary>
-    /// The number of currents the dynamically allocated array 'currents' has
-    /// </summary>
-    int NumberOfCurrents = 0;
-    /// <summary>
-    /// The rated voltage (typically the voltage at peak normal usage of the grid)
-    /// </summary>
-    double RatedVoltage = 250000;
-    /// <summary>
-    /// The rated current (typically the magnitude for a two line node at peak normal usage of the grid)
-    /// </summary>
-    double RatedCurrent = 25;
-
-    /// <summary>
-    /// This constructor uses previously allocated parameters that will be freed on the deconstructor.
-    /// </summary>
-    /// <param name="nodeNumber">The unique identifying number for the node</param>
-    /// <param name="voltage">The pointer to the node voltage (startNodeNum = nodeNum and destNodeNum = 0)</param>
-    /// <param name="currents">The pointer to the currents (startNodeNum = nodeNum)</param>
-    /// <param name="numberOfCurrents">The number of currents the dynamically allocated array 'currents' has</param>
-    /// <param name="ratedVoltage">The rated voltage (typically the voltage at peak normal usage of the grid)</param>
-    /// <param name="ratedCurrent">
-    /// The rated current (typically the magnitude for a two line node at peak normal usage of the grid)
-    /// </param>
-    nodeSample(int nodeNumber, parameter* voltage, parameter** currents, int numberOfCurrents,
-        double ratedVoltage = 250000, double ratedCurrent = 25)
-    {
-        NodeNumber = nodeNumber;
-        Voltage = voltage;
-        Currents = currents;
-        NumberOfCurrents = numberOfCurrents;
-        RatedVoltage = ratedVoltage;
-        RatedCurrent = ratedCurrent;
-    }
-
-    /// <summary>
-    /// This constructor uses phasors and an array of current destination node numbers in place of the parameter pointers.
-    /// </summary>
-    /// <param name="nodeNumber">The unique identifying number for the node</param>
-    /// <param name="voltage">The node voltage phasor</param>
-    /// <param name="currents">The array of current phasors</param>
-    /// <param name="currentDestinationNodes">The array of current destination node numbers</param>
-    /// <param name="numberOfCurrents">The number of currents the dynamically allocated array 'currents' has</param>
-    /// <param name="ratedVoltage">The rated voltage (typically the voltage at peak normal usage of the grid)</param>
-    /// <param name="ratedCurrent">
-    /// The rated current (typically the magnitude for a two line node at peak normal usage of the grid)
-    /// </param>
-    nodeSample(int nodeNumber, phasor voltage, phasor* currents, int* currentDestinationNodes, int numberOfCurrents,
-        double ratedVoltage = 250000, double ratedCurrent = 25)
-    {
-        NodeNumber = nodeNumber;
-
-        Voltage = new parameter(voltage, "V" + std::to_string(nodeNumber), "V", nodeNumber, 0);
-        if (Voltage == NULL) {
-            MemoryAllocationFailure("Voltage");
-            return;
-        }
-
-        if (numberOfCurrents > 0) {
-            Currents = new parameter*[numberOfCurrents];
-            if (Currents == NULL) {
-                MemoryAllocationFailure("Currents");
-                return;
-            }
-            for (int currentsIndex = 0; currentsIndex < numberOfCurrents; currentsIndex++) Currents[currentsIndex] = NULL;
-
-            for (int currentsIndex = 0; currentsIndex < numberOfCurrents; currentsIndex++) {
-                Currents[currentsIndex] = new parameter(currents[currentsIndex],
-                    "I" + std::to_string(nodeNumber) + std::to_string(currentDestinationNodes[currentsIndex]),
-                    "A", nodeNumber, currentDestinationNodes[currentsIndex]);
-                if (Currents[currentsIndex] == NULL) {
-                    MemoryAllocationFailure("Currents[currentsIndex]");
-                    return;
-                }
-            }
-        }
-        NumberOfCurrents = numberOfCurrents;
-
-        RatedVoltage = ratedVoltage;
-        RatedCurrent = ratedCurrent;
-    }
-
-    /// <summary>
-    /// This will free everything in its pointers
-    /// </summary>
-    ~nodeSample()
-    {
-        FreeMemory();
-    }
-
-    /// <summary>
-    /// Prints the node number, voltage phasor, and current phasors
-    /// </summary>
-    void PrintNode()
-    {
-        std::cout << "Node " << std::to_string(NodeNumber) << "\n";
-        if (Voltage != NULL) std::cout << Voltage->Name << " = " << Voltage->Phasor.PhasorToString() << "V\n";
-        else std::cout << "'voltage' not set\n";
-        if (Currents != NULL) // std::cout << currents[i].name << " = " << currents[i].ph.PhasorToString() << "A\n"
-            for (int i = 0; i < NumberOfCurrents; i++) {
-                std::cout << Currents[i]->Name << " = " << Currents[i]->Phasor.PhasorToString() << "A\n";
-            }
-        else std::cout << "'currents' not set\n";
-        std::cout << "Rated Voltage: " << std::to_string(RatedVoltage) << "V\n";
-        std::cout << "Rated Current: " << std::to_string(RatedCurrent) << "A\n";
-    }
-};
-
-
-/// <summary>
-/// This contains a pointer to each node of interest as well as if the line is working or not.
-/// </summary>
-class lineSample {
-private:
-    /// <summary>
-    /// The first node the line is connected to
-    /// </summary>
-    nodeSample* node1 = NULL;
-    /// <summary>
-    /// The second node the line is connected to
-    /// </summary>
-    nodeSample* node2 = NULL;
-
-    /// <summary>
-    /// Free the dynamically allocated memory and set their pointers to NULL. Notice that nodeSample* node1 and nodeSample* node2
-    /// are not freed here.
-    /// </summary>
-    void FreeMemory()
-    {
-        if (Node1LineCurrentNorm != NULL) {
-            delete Node1LineCurrentNorm;
-            Node1LineCurrentNorm = NULL;
-        }
-        if (Node2LineCurrentNorm != NULL) {
-            delete Node2LineCurrentNorm;
-            Node2LineCurrentNorm = NULL;
-        }
-
-        if (Node1VoltageNorm != NULL) {
-            delete Node1VoltageNorm;
-            Node1VoltageNorm = NULL;
-        }
-        if (Node2VoltageNorm != NULL) {
-            delete Node2VoltageNorm;
-            Node2VoltageNorm = NULL;
-        }
-
-        if (Node1OtherCurrentsNorm != NULL) {
-            for (int deletingIndex = 0; deletingIndex < NumberOfNode1OtherCurrents; deletingIndex++) {
-                if (Node1OtherCurrentsNorm[deletingIndex] != NULL) {
-                    delete Node1OtherCurrentsNorm[deletingIndex];
-                    Node1OtherCurrentsNorm[deletingIndex] = NULL;
-                }
-            }
-            delete[] Node1OtherCurrentsNorm;
-            Node1OtherCurrentsNorm = NULL;
-            NumberOfNode1OtherCurrents = 0;
-        }
-        if (Node2OtherCurrentsNorm != NULL) {
-            for (int deletingIndex = 0; deletingIndex < NumberOfNode2OtherCurrents; deletingIndex++) {
-                if (Node2OtherCurrentsNorm[deletingIndex] != NULL) {
-                    delete Node2OtherCurrentsNorm[deletingIndex];
-                    Node2OtherCurrentsNorm[deletingIndex] = NULL;
-                }
-            }
-            delete[] Node2OtherCurrentsNorm;
-            Node2OtherCurrentsNorm = NULL;
-            NumberOfNode2OtherCurrents = 0;
-        }
-    }
-
-    /// <summary>
-    /// Display an error message and call FreeMemory().
-    /// </summary>
-    /// <param=variableName>The name of the variable that failed to get memory allocation</param>
-    void MemoryAllocationFailure(std::string variableName)
-    {
-        std::cout << "Error: node() failed to allocate memory for " << variableName << "\n";
-        FreeMemory();
-    }
-public:
-    /// <summary>
-    /// The normalized (magnitude divided by the current rating) current flowing through the line from node 1
-    /// </summary>
-    parameter* Node1LineCurrentNorm = NULL;
-    /// <summary>
-    /// The normalized (magnitude divided by the current rating) current flowing through the line from node 2
-    /// </summary>
-    parameter* Node2LineCurrentNorm = NULL;
-
-    /// <summary>
-    /// The normalized (magnitude divided by the voltage rating) voltage at node 1
-    /// </summary>
-    parameter* Node1VoltageNorm = NULL;
-    /// <summary>
-    /// The normalized (magnitude divided by the voltage rating) voltage at node 2
-    /// </summary>
-    parameter* Node2VoltageNorm = NULL;
-
-    /// <summary>
-    /// The normalized (magnitude divided by the current rating) currents flowing from node 1 not counting the line current
-    /// </summary>
-    parameter** Node1OtherCurrentsNorm = NULL;
-    /// <summary>
-    /// The number of currents flowing from node 1 not counting the line current
-    /// </summary>
-    int NumberOfNode1OtherCurrents = 0;
-    /// <summary>
-    /// The normalized (magnitude divided by the current rating) currents flowing from node 2 not counting the line current
-    /// </summary>
-    parameter** Node2OtherCurrentsNorm = NULL;
-    /// <summary>
-    /// The number of currents flowing from node 2 not counting the line current
-    /// </summary>
-    int NumberOfNode2OtherCurrents = 0;
-
-    /// <summary>
-    /// The status of the line
-    /// </summary>
-    bool IsWorking = true;
-
-    /// <summary>
-    /// The constructor
-    /// </summary>
-    /// <param name="node1">The first node of the line</param>
-    /// <param name="node2">The second node of the line</param>
-    /// <param name="isWorking">The status of the line</param>
-    lineSample(nodeSample* node1, nodeSample* node2, bool isWorking)
-    {
-        this->node1 = node1;
-        this->node2 = node2;
-        IsWorking = isWorking;
-
-        // Node 1 line current
-        Node1LineCurrentNorm = new parameter();
-        if (Node1LineCurrentNorm == NULL) {
-            MemoryAllocationFailure("Node1LineCurrentNorm");
-            return;
-        }
-        bool foundCurrent = false;
-        for (int currentIndex = 0; currentIndex < node1->NumberOfCurrents; currentIndex++) {    // Find the current going to node 2
-            if (node1->Currents[currentIndex]->DestinationNodeNumber == node2->NodeNumber) {    // Found the current going to node 2
-                *Node1LineCurrentNorm = *node1->Currents[currentIndex];
-                Node1LineCurrentNorm->Phasor = node1->Currents[currentIndex]->Phasor / phasor(node1->RatedCurrent, 0);
-                foundCurrent = true;
-                break;
-            }
-        }
-        if (foundCurrent == false) {    // Failed to find the current going to node 2
-            std::cout << "Error: Unable to find a current in node1 going to node2!\n";
-            FreeMemory();
-            return;
-        }
-
-        // Node 2 line current
-        Node2LineCurrentNorm = new parameter();
-        if (Node2LineCurrentNorm == NULL) {
-            MemoryAllocationFailure("Node2LineCurrentNorm");
-            return;
-        }
-        foundCurrent = false;
-        for (int currentIndex = 0; currentIndex < node2->NumberOfCurrents; currentIndex++) {    // Find the current going to node 1
-            if (node2->Currents[currentIndex]->DestinationNodeNumber == node1->NodeNumber) {    // Found the current going to node 1
-                *Node2LineCurrentNorm = *node2->Currents[currentIndex];
-                Node2LineCurrentNorm->Phasor = node2->Currents[currentIndex]->Phasor / phasor(node2->RatedCurrent, 0);
-                foundCurrent = true;
-                break;
-            }
-        }
-        if (foundCurrent == false) {    // Failed to find the current going to node 1
-            std::cout << "Error: Unable to find a current in node2 going to node1!\n";
-            FreeMemory();
-            return;
-        }
-
-        // Node 1 voltage
-        Node1VoltageNorm = new parameter();
-        if (Node1VoltageNorm == NULL) {
-            MemoryAllocationFailure("Node1VoltageNorm");
-            return;
-        }
-        *Node1VoltageNorm = *node1->Voltage;
-        Node1VoltageNorm->Phasor = node1->Voltage->Phasor / phasor(node1->RatedVoltage, 0);
-
-        // Node 2 voltage
-        Node2VoltageNorm = new parameter();
-        if (Node2VoltageNorm == NULL) {
-            MemoryAllocationFailure("Node2VoltageNorm");
-            return;
-        }
-        *Node2VoltageNorm = *node2->Voltage;
-        Node2VoltageNorm->Phasor = node2->Voltage->Phasor / phasor(node2->RatedVoltage, 0);
-
-        // Node 1 other currents
-        if (node1->NumberOfCurrents <= 1) NumberOfNode1OtherCurrents = 0;
-        else {
-            NumberOfNode1OtherCurrents = node1->NumberOfCurrents - 1;
-            Node1OtherCurrentsNorm = new parameter*[NumberOfNode1OtherCurrents];
-            if (Node1OtherCurrentsNorm == NULL) {
-                MemoryAllocationFailure("Node1OtherCurrentsNorm");
-                return;
-            }
-            for (int initializingIndex = 0; initializingIndex < NumberOfNode1OtherCurrents; initializingIndex++) {
-                Node1OtherCurrentsNorm[initializingIndex] = NULL;
-            }
-
-            foundCurrent = false;
-            for (int currentIndex = 0; currentIndex < node1->NumberOfCurrents; currentIndex++) {
-                if (foundCurrent == false) {
-                    // Skip the line current
-                    if (node1->Currents[currentIndex]->DestinationNodeNumber == node2->NodeNumber) foundCurrent = true;
-
-                    else {
-                        Node1OtherCurrentsNorm[currentIndex] = new parameter();
-                        if (Node1OtherCurrentsNorm[currentIndex] == NULL) {
-                            MemoryAllocationFailure("Node1OtherCurrentsNorm[currentIndex]");
-                            return;
-                        }
-                        *Node1OtherCurrentsNorm[currentIndex] = *node1->Currents[currentIndex];
-                        Node1OtherCurrentsNorm[currentIndex]->Phasor = 
-                            node1->Currents[currentIndex]->Phasor / phasor(node1->RatedCurrent, 0);
-                    }
-                }
-
-                else {
-                    Node1OtherCurrentsNorm[currentIndex - 1] = new parameter();
-                    if (Node1OtherCurrentsNorm[currentIndex - 1] == NULL) {
-                        MemoryAllocationFailure("Node1OtherCurrentsNorm[currentIndex - 1]");
-                        return;
-                    }
-                    *Node1OtherCurrentsNorm[currentIndex - 1] = *node1->Currents[currentIndex];
-                    Node1OtherCurrentsNorm[currentIndex - 1]->Phasor =
-                        node1->Currents[currentIndex]->Phasor / phasor(node1->RatedCurrent, 0);
-                }
-            }
-        }
-
-        // Node 2 other currents
-        if (node2->NumberOfCurrents <= 1) NumberOfNode2OtherCurrents = 0;
-        else {
-            NumberOfNode2OtherCurrents = node2->NumberOfCurrents - 1;
-            Node2OtherCurrentsNorm = new parameter*[NumberOfNode2OtherCurrents];
-            if (Node2OtherCurrentsNorm == NULL) {
-                MemoryAllocationFailure("Node2OtherCurrentsNorm");
-                return;
-            }
-            for (int initializingIndex = 0; initializingIndex < NumberOfNode2OtherCurrents; initializingIndex++) {
-                Node2OtherCurrentsNorm[initializingIndex] = NULL;
-            }
-
-            foundCurrent = false;
-            for (int currentIndex = 0; currentIndex < node2->NumberOfCurrents; currentIndex++) {
-                if (foundCurrent == false) {
-                    if (node2->Currents[currentIndex]->DestinationNodeNumber == node1->NodeNumber) foundCurrent = true;
-
-                    else {
-                        Node2OtherCurrentsNorm[currentIndex] = new parameter();
-                        if (Node2OtherCurrentsNorm[currentIndex] == NULL) {
-                            MemoryAllocationFailure("Node2OtherCurrentsNorm[currentIndex]");
-                            return;
-                        }
-                        *Node2OtherCurrentsNorm[currentIndex] = *node2->Currents[currentIndex];
-                        Node2OtherCurrentsNorm[currentIndex]->Phasor =
-                            node2->Currents[currentIndex]->Phasor / phasor(node2->RatedCurrent, 0);
-                    }
-                }
-
-                else {
-                    Node2OtherCurrentsNorm[currentIndex - 1] = new parameter();
-                    if (Node2OtherCurrentsNorm[currentIndex - 1] == NULL) {
-                        MemoryAllocationFailure("Node2OtherCurrentsNorm[currentIndex - 1]");
-                        return;
-                    }
-                    *Node2OtherCurrentsNorm[currentIndex - 1] = *node2->Currents[currentIndex];
-                    Node2OtherCurrentsNorm[currentIndex - 1]->Phasor = 
-                        node2->Currents[currentIndex]->Phasor / phasor(node2->RatedCurrent, 0);
-                }
-            }
-        }
-    }
-    
-    /// <summary>
-    /// The deconstructor (notice that the node pointers don't have their memory freed here)
-    /// </summary>
-    ~lineSample()
-    {
-        FreeMemory();
-    }
-
-    /// <summary>
-    /// Print the nodes, line status, and normalized parameters.
-    /// </summary>
-    void PrintLine()
-    {
-        std::cout << "\nNode 1:\n";
-        node1->PrintNode();
-        std::cout << "\nNode 2:\n";
-        node2->PrintNode();
-        
-        std::cout << "\nLine status: " << std::to_string(IsWorking) << "\n";
-        std::cout << "Node 1 Normalized Line Current:\n";
-        Node1LineCurrentNorm->PrintParameter();
-        std::cout << "Node 2 Normalized Line Current:\n";
-        Node2LineCurrentNorm->PrintParameter();
-        std::cout << "Node 1 Normalized Node Voltage:\n";
-        Node1VoltageNorm->PrintParameter();
-        std::cout << "Node 2 Normalized Node Voltage:\n";
-        Node2VoltageNorm->PrintParameter();
-        std::cout << "Node 1 Normalized Other Currents:\n";
-        for (int i = 0; i < NumberOfNode1OtherCurrents; i++) Node1OtherCurrentsNorm[i]->PrintParameter();
-        std::cout << "Node 2 Normalized Other Currents:\n";
-        for (int i = 0; i < NumberOfNode2OtherCurrents; i++) Node2OtherCurrentsNorm[i]->PrintParameter();
-    }
-};
-
-
-/// <summary>
-/// Calculates and stores the distance of the known line from the unknown line
-/// </summary>
-class distanceSample {
-private:
-    /// <summary>
-    /// A pointer to the line sample of interest with the known output
-    /// </summary>
-    lineSample* line = NULL;
-    /// <summary>
-    /// The weight of the line currents
-    /// </summary>
-    double wLine = 20;
-    /// <summary>
-    /// The weight of the node voltages
-    /// </summary>
-    double wNode = 4;
-    /// <summary>
-    /// The weight of the other currents flowing from the nodes not counting the line currents
-    /// </summary>
-    double wOther = 1;
-
-    /// <summary>
-    /// Verify if the line samples are samples of the same line.
-    /// </summary>
-    /// <param name="known">The line sample with the status known</param>
-    /// <param name="unknown">The line sample with the status unknown</param>
-    /// <returns>True if the samples are of the same line</returns>
-    bool AreSamplesOfTheSameLine(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus)
-    {
-        bool areSamplesOfTheSameLine = true;
-
-        if ((sampleWithKnownStatus == NULL) || (sampleWithUnknownStatus == NULL)) {
-            if (sampleWithKnownStatus == NULL) {
-                std::cout << "Error in distanceSample(): lineSample* sampleWithKnownStatus = NULL!\n";
-            }
-            if (sampleWithUnknownStatus == NULL) {
-                std::cout << "Error in distanceSample(): lineSample* sampleWithUnknownStatus = NULL!\n";
-            }
-            return false;
-        }
-
-        // Check Line Currents
-        if (sampleWithKnownStatus->Node1LineCurrentNorm->StartNodeNumber !=
-            sampleWithUnknownStatus->Node1LineCurrentNorm->StartNodeNumber) areSamplesOfTheSameLine = false;
-        if (sampleWithKnownStatus->Node1LineCurrentNorm->DestinationNodeNumber != 
-            sampleWithUnknownStatus->Node1LineCurrentNorm->DestinationNodeNumber) areSamplesOfTheSameLine = false;
-        if (sampleWithKnownStatus->Node2LineCurrentNorm->StartNodeNumber != 
-            sampleWithUnknownStatus->Node2LineCurrentNorm->StartNodeNumber) areSamplesOfTheSameLine = false;
-        if (sampleWithKnownStatus->Node2LineCurrentNorm->DestinationNodeNumber != 
-            sampleWithUnknownStatus->Node2LineCurrentNorm->DestinationNodeNumber) areSamplesOfTheSameLine = false;
-
-        // Check Node Voltages
-        if (sampleWithKnownStatus->Node1VoltageNorm->StartNodeNumber != 
-            sampleWithUnknownStatus->Node1VoltageNorm->StartNodeNumber) areSamplesOfTheSameLine = false;
-        if (sampleWithKnownStatus->Node2VoltageNorm->StartNodeNumber != 
-            sampleWithUnknownStatus->Node2VoltageNorm->StartNodeNumber) areSamplesOfTheSameLine = false;
-
-        // Check Other Currents
-        if (sampleWithKnownStatus->NumberOfNode1OtherCurrents != 
-            sampleWithUnknownStatus->NumberOfNode1OtherCurrents) areSamplesOfTheSameLine = false;
-        else for (int comparingIndex = 0; comparingIndex < sampleWithKnownStatus->NumberOfNode1OtherCurrents; comparingIndex++) {
-            if (sampleWithKnownStatus->Node1OtherCurrentsNorm[comparingIndex]->StartNodeNumber !=
-                sampleWithUnknownStatus->Node1OtherCurrentsNorm[comparingIndex]->StartNodeNumber) {
-                areSamplesOfTheSameLine = false;
-                break;
-            }
-            if (sampleWithKnownStatus->Node1OtherCurrentsNorm[comparingIndex]->DestinationNodeNumber !=
-                sampleWithUnknownStatus->Node1OtherCurrentsNorm[comparingIndex]->DestinationNodeNumber) {
-                areSamplesOfTheSameLine = false;
-                break;
-            }
-        }
-        if (sampleWithKnownStatus->NumberOfNode2OtherCurrents !=
-            sampleWithUnknownStatus->NumberOfNode2OtherCurrents) areSamplesOfTheSameLine = false;
-        else for (int comparingIndex = 0; comparingIndex < sampleWithKnownStatus->NumberOfNode2OtherCurrents; comparingIndex++) {
-            if (sampleWithKnownStatus->Node2OtherCurrentsNorm[comparingIndex]->StartNodeNumber !=
-                sampleWithUnknownStatus->Node2OtherCurrentsNorm[comparingIndex]->StartNodeNumber) {
-                areSamplesOfTheSameLine = false;
-                break;
-            }
-            if (sampleWithKnownStatus->Node2OtherCurrentsNorm[comparingIndex]->DestinationNodeNumber !=
-                sampleWithUnknownStatus->Node2OtherCurrentsNorm[comparingIndex]->DestinationNodeNumber) {
-                areSamplesOfTheSameLine = false;
-                break;
-            }
-        }
-
-        return areSamplesOfTheSameLine;
-    }
-
-    /// <summary>
-    /// Calculate the weighted euclidean distance between the parameters. This method assumes the two line samples were checked to be
-    /// of the same line beforehand.
-    /// </summary>
-    /// <param name="sampleWithKnownStatus">The line sample with the line status known</param>
-    /// <param name="sampleWithUnknownStatus">The line sample with the line status unknown</param>
-    /// <returns>The weighted euclidean distance</returns>
-    double CalculateDistance(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus)
-    {
-        double dist = 0;
-
-        // The line currents
-        dist += wLine / 2 * pow((sampleWithKnownStatus->Node1LineCurrentNorm->Phasor -
-                sampleWithUnknownStatus->Node1LineCurrentNorm->Phasor).RMSvalue, 2);
-        dist += wLine / 2 * pow((sampleWithKnownStatus->Node2LineCurrentNorm->Phasor - 
-            sampleWithUnknownStatus->Node2LineCurrentNorm->Phasor).RMSvalue, 2);
-
-        // The node voltages
-        dist += wNode / 2 * pow((sampleWithKnownStatus->Node1VoltageNorm->Phasor -
-            sampleWithUnknownStatus->Node1VoltageNorm->Phasor).RMSvalue, 2);
-        dist += wNode / 2 * pow((sampleWithKnownStatus->Node2VoltageNorm->Phasor - 
-            sampleWithUnknownStatus->Node2VoltageNorm->Phasor).RMSvalue, 2);
-
-        // The other currents
-        double numberOfCurrents = (double)sampleWithKnownStatus->NumberOfNode1OtherCurrents;
-        for (int currentIndex = 0; currentIndex < sampleWithKnownStatus->NumberOfNode1OtherCurrents; currentIndex++) {
-            dist += wOther / (2 * numberOfCurrents) * pow((sampleWithKnownStatus->Node1OtherCurrentsNorm[currentIndex]->Phasor -
-                sampleWithUnknownStatus->Node1OtherCurrentsNorm[currentIndex]->Phasor).RMSvalue, 2);
-        }
-        numberOfCurrents = (double)sampleWithKnownStatus->NumberOfNode2OtherCurrents;
-        for (int currentIndex = 0; currentIndex < sampleWithKnownStatus->NumberOfNode2OtherCurrents; currentIndex++) {
-            dist += wOther / (2 * numberOfCurrents) * pow((sampleWithKnownStatus->Node2OtherCurrentsNorm[currentIndex]->Phasor - 
-                sampleWithUnknownStatus->Node2OtherCurrentsNorm[currentIndex]->Phasor).RMSvalue, 2);
-        }
-
-        return sqrt(dist);
-    }
-public:
-    /// <summary>
-    /// The distance between the line with a known output and the line with the unknown output
-    /// </summary>
-    double Distance = 10000000000;
-    /// <summary>
-    /// The status of the known line
-    /// </summary>
-    bool IsWorking = true;
-
-    /// <summary>
-    /// The constructor
-    /// </summary>
-    /// <param name="sampleWithKnownStatus">the line sample with a known line status</param>
-    /// <param name="sampleWithUnknownStatus">the line sample with an unknown line status</param>
-    distanceSample(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus)
-    {
-        if (AreSamplesOfTheSameLine(sampleWithKnownStatus, sampleWithUnknownStatus) == false) {
-            std::cout << "distanceSample(): lineSample* known and lineSample* unknown are not samples of the same line.\n";
-            return;
-        }
-
-        line = sampleWithKnownStatus;
-        IsWorking = sampleWithKnownStatus->IsWorking;
-
-        Distance = CalculateDistance(sampleWithKnownStatus, sampleWithUnknownStatus);
-    }
-
-    /// <summary>
-    /// The deconstructor (frees nothing)
-    /// </summary>
-    ~distanceSample() {}
-
-    /// <summary>
-    /// Print the attached known line, weights, distance, and the status of the known line.
-    /// </summary>
-    void Print() {
-        line->PrintLine();
-        std::cout << "Wline = " << std::to_string(wLine) << "\n";
-        std::cout << "Wnode = " << std::to_string(wNode) << "\n";
-        std::cout << "Wother = " << std::to_string(wOther) << "\n";
-        std::cout << "distance = " << std::to_string(Distance) << "\n";
-        std::cout << "isWorking = " << std::to_string(IsWorking) << "\n";
-    }
-};
-
-
-/// <summary>
-/// This contains a set of known line samples, an unknown line sample, and predicts the status of the unknown line sample.
-/// </summary>
-class knn {
-private:
-    /// <summary>
-    /// An array containing the k closest line samples and their distances with the closest having the lowest index
-    /// </summary>
-    distanceSample** distances = NULL;
-    /// <summary>
-    /// The number of nearest neighbors to consider
-    /// </summary>
-    int numberOfNearestNeighbors = 5;
-
-    /// <summary>
-    /// Sorts the array of distances when a new distance is added to the tail end of the list
-    /// </summary>
-    /// <param name="i">The index of the knowns the constructor is currently at</param>
-    void SortDistances(int i) {
-        // Place the new entry on the proper place on the array
-        int minimum = numberOfNearestNeighbors - 1;
-        if (i < numberOfNearestNeighbors - 1) minimum = i;
-
-        for (int j = minimum; j > 0; j--) {
-            // If the distance is less than it's predescesor, swap their positions
-            if (distances[j]->Distance < distances[j - 1]->Distance) {
-                distanceSample* dummy = new distanceSample(SamplesWithKnownStatuses[i], SampleWithUnknownStatus);
-                *dummy = *distances[j - 1];
-                *distances[j - 1] = *distances[j];
-                *distances[j] = *dummy;
-                delete dummy; dummy = NULL;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Predicts the line status of the unknown line sample. It will return false in the case of a tie, but k is usually odd and
-    /// the statuses of the nearest neighbors are unanimous in virtually every case.
-    /// </summary>
-    /// <returns>The predicted status of the unknown line sample</returns>
-    bool PredictStatus() {
-        int numOfWorkingLines = 0;
-        int numOfNotWorkingLines = 0;
-
-        for (int i = 0; i < numberOfNearestNeighbors; i++) {
-            if (distances[i]->IsWorking == true) numOfWorkingLines += 1;
-            else numOfNotWorkingLines += 1;
-        }
-
-        if (numOfWorkingLines > numOfNotWorkingLines) return true;
-        else return false;
-    }
-
-    /// <summary>
-    /// Free the dynamically allocated memory and set their pointers to NULL. Notice that only distanceSample** distances is freed.
-    /// </summary>
-    void FreeMemory()
-    {
-        if (distances != NULL) {
-            for (int i = 0; i < numberOfNearestNeighbors; i++) {
-                if (distances[i] != NULL) { delete distances[i]; distances[i] = NULL; }
-            }
-            delete[] distances; distances = NULL;
-        }
-    }
-
-    /// <summary>
-    /// Display an error message and call FreeMemory().
-    /// </summary>
-    /// <param=variableName>The name of the variable that failed to get memory allocation</param>
-    void MemoryAllocationFailure(std::string variableName)
-    {
-        std::cout << "Error: node() failed to allocate memory for " << variableName << "\n";
-        FreeMemory();
-    }
-public:
-    /// <summary>
-    /// The array of line samples with a known line status
-    /// </summary>
-    lineSample** SamplesWithKnownStatuses = NULL;
-    /// <summary>
-    /// The number of known line samples
-    /// </summary>
-    int NumberOfKnownStatuses = 0;
-    /// <summary>
-    /// The line sample with an unknown line status
-    /// </summary>
-    lineSample* SampleWithUnknownStatus = NULL;
-    /// <summary>
-    /// The predicted status
-    /// </summary>
-    bool PredictedStatus = true;
-
-    /// <summary>
-    /// The constructor
-    /// </summary>
-    /// <param name="samplesWithKnownStatuses">The array of line samples with known line statuses</param>
-    /// <param name="numberOfKnownStatuses">The number of elements in the samplesWithKnownStatuses array</param>
-    /// <param name="sampleWithUnknownStatus">A line sample with an unknown line status</param>
-    /// <param name="numberOfNearestNeighbors">The number of nearest neighbors to consider</param>
-    knn(lineSample** samplesWithKnownStatuses, int numberOfKnownStatuses, lineSample* sampleWithUnknownStatus,
-        int numberOfNearestNeighbors = 5)
-    {
-        SamplesWithKnownStatuses = samplesWithKnownStatuses;
-        NumberOfKnownStatuses = numberOfKnownStatuses;
-        SampleWithUnknownStatus = sampleWithUnknownStatus;
-        this->numberOfNearestNeighbors = numberOfNearestNeighbors;
-
-        distances = new distanceSample*[numberOfNearestNeighbors];
-        if (distances == NULL) {
-            MemoryAllocationFailure("distances");
-            return;
-        }
-        for (int initializingIndex = 0; initializingIndex < numberOfNearestNeighbors; initializingIndex++) {
-            distances[initializingIndex] = NULL;
-        }
-
-        for (int knownSampleIndex = 0; knownSampleIndex < numberOfKnownStatuses; knownSampleIndex++) {
-            // Special case where not all elements of distances are filled
-            if (knownSampleIndex < numberOfNearestNeighbors) {
-                distances[knownSampleIndex] = new distanceSample(samplesWithKnownStatuses[knownSampleIndex], sampleWithUnknownStatus);
-                if (distances[knownSampleIndex] == NULL) {
-                    MemoryAllocationFailure("distances[knownSampleIndex]");
-                    return;
-                }
-                if (knownSampleIndex > 0) {
-                    SortDistances(knownSampleIndex);
-                }
-            }
-
-            else {
-                distanceSample* distanceAtKnownSampleIndex =
-                    new distanceSample(samplesWithKnownStatuses[knownSampleIndex], sampleWithUnknownStatus);
-                if (distanceAtKnownSampleIndex == NULL) {
-                    MemoryAllocationFailure("distanceAtIndexI");
-                    return;
-                }
-
-                if (distanceAtKnownSampleIndex->Distance < distances[numberOfNearestNeighbors - 1]->Distance) {
-                    delete distances[numberOfNearestNeighbors - 1];
-                    distances[numberOfNearestNeighbors - 1] = distanceAtKnownSampleIndex;
-                    distanceAtKnownSampleIndex = NULL;
-                    SortDistances(knownSampleIndex);
-                }
-                else {
-                    delete distanceAtKnownSampleIndex;
-                    distanceAtKnownSampleIndex = NULL;
-                }
-            }
-        }
-
-        this->PredictedStatus = PredictStatus();
-    }
-
-    /// <summary>
-    /// The deconstructor
-    /// </summary>
-    ~knn()
-    {
-        FreeMemory();
-    }
-
-    /// <summary>
-    /// Print the distances of the nearest neighbors and the line status prediction.
-    /// </summary>
-    void Print() {
-        std::cout << "\nKNN Algorithm:\n";
-        for (int i = 0; i < numberOfNearestNeighbors; i++) std::cout << "distances[" << std::to_string(i) << "] distance: " <<
-            std::to_string(distances[i]->Distance) << "\n";
-        std::cout << "Line Status Prediction: " << std::to_string(PredictedStatus) << "\n";
-    }
-};
-
-
-void TestDivideByZeroPhasorExceptionMemoryAllocationFailure(std::string, phasor*, phasor*, phasor*);
+#include "phasor.h"
+#include "instantaneousMeasurement.h"
+#include "parameter.h"
+#include "nodeSample.h"
+#include "lineSample.h"
+#include "distanceSample.h"
+#include "knnPredictionOfUnknownLineSample.h"
+
+
+void TestDivideByZeroPhasorExceptionMemoryAllocationFailure(string, phasor*, phasor*, phasor*);
 void TestDivideByZeroPhasorExceptionFreeMemory(phasor*, phasor*, phasor*);
 /// <summary>
 /// Attempt to divide a phasor by a zero phasor where the special case catch should output "Error: Divisor phasor is 0." 
@@ -1253,9 +71,9 @@ void TestDivideByZeroPhasorException()
 /// Display an error message when the method TestDivideByZeroPhasorException() fails to allocate memory for a variable.
 /// </summary>
 /// <param name="variableName">The variable name the main method failed to allocate memory for</param>
-void TestDivideByZeroPhasorExceptionMemoryAllocationFailure(std::string variableName, phasor* p1, phasor* p2, phasor* pdiv)
+void TestDivideByZeroPhasorExceptionMemoryAllocationFailure(string variableName, phasor* p1, phasor* p2, phasor* pdiv)
 {
-    std::cout << "Error: TestDivideByZeroPhasorException() failed to allocate memory for " << variableName << "\n";
+    cout << "Error: TestDivideByZeroPhasorException() failed to allocate memory for " << variableName << "\n";
     TestDivideByZeroPhasorExceptionFreeMemory(p1, p2, pdiv);
 }
 /// <summary>
@@ -1278,7 +96,7 @@ void TestDivideByZeroPhasorExceptionFreeMemory(phasor* p1, phasor* p2, phasor* p
 }
 
 
-void TestZeroToNonPositivePowerExceptionMemoryAllocationFailure(std::string, phasor*, phasor*);
+void TestZeroToNonPositivePowerExceptionMemoryAllocationFailure(string, phasor*, phasor*);
 void TestZeroToNonPositivePowerExceptionFreeMemory(phasor*, phasor*);
 /// <summary>
 /// Attempt to raise a zero phasor to a non-positive power where the special case catch should output "Error: Base is 0 and power
@@ -1308,9 +126,9 @@ void TestZeroToNonPositivePowerException()
 /// Display an error message when the method TestZeroToNonPositivePowerException() fails to allocate memory for a variable.
 /// </summary>
 /// <param name="variableName">The name of the variable the method failed to allocate memory for</param>
-void TestZeroToNonPositivePowerExceptionMemoryAllocationFailure(std::string variableName, phasor* ph, phasor* pexp)
+void TestZeroToNonPositivePowerExceptionMemoryAllocationFailure(string variableName, phasor* ph, phasor* pexp)
 {
-    std::cout << "Error: TestZeroToNonPositivePowerException() failed to allocate memory for " << variableName << "\n";
+    cout << "Error: TestZeroToNonPositivePowerException() failed to allocate memory for " << variableName << "\n";
     TestZeroToNonPositivePowerExceptionFreeMemory(ph, pexp);
 }
 /// <summary>
@@ -1329,7 +147,7 @@ void TestZeroToNonPositivePowerExceptionFreeMemory(phasor* ph, phasor* pexp)
 }
 
 
-void TestParameterPhasorCalcAccuracyMemoryAllocationFailure(std::string, phasor*, instantaneousMeasurement*, parameter*, phasor*);
+void TestParameterPhasorCalcAccuracyMemoryAllocationFailure(string, phasor*, instantaneousMeasurement*, parameter*, phasor*);
 void TestParameterPhasorCalcAccuracyFreeMemory(phasor*, instantaneousMeasurement*, parameter*, phasor*);
 /// <summary>
 /// This will test the accuracy of the parameter class's phasor calculation by creating sample points from a reference phasor and
@@ -1360,10 +178,10 @@ void TestParameterPhasorCalcAccuracy()
         return;
     }
     for (int i = 0; i < numOfSamples; i++) {
-        samples[i].time = (double)i / (double)samplesPerSecond;
+        samples[i].timeStamp = (double)i / (double)samplesPerSecond;
 
         // samples[i].value = A * sin(wt + theta)
-        double wt = 2 * M_PI * f * samples[i].time;                            // Time dependent angle
+        double wt = 2 * M_PI * f * samples[i].timeStamp;                            // Time dependent angle
         double A = sqrt(2) * referencePhasor->RMSvalue;                     // Amplitude
         double theta = M_PI / 180 * referencePhasor->PhaseAngleDegrees;     // Angle offset
         samples[i].value = A * sin(wt + theta);
@@ -1379,8 +197,8 @@ void TestParameterPhasorCalcAccuracy()
 
     // Print the test parameter, the calculated phasor, and the reference phasor
     testParameter->PrintParameter();
-    std::cout << "\nCalculated Phasor: " << testParameter->Phasor.PhasorToString() << "\n";
-    std::cout << "Reference Phasor: " << referencePhasor->PhasorToString() << "\n";
+    cout << "\nCalculated Phasor: " << testParameter->Phasor.PhasorToString() << "\n";
+    cout << "Reference Phasor: " << referencePhasor->PhasorToString() << "\n";
 
     // Calculate and print the percent error
     difference = new phasor();
@@ -1390,17 +208,17 @@ void TestParameterPhasorCalcAccuracy()
     }
     *difference = *referencePhasor - testParameter->Phasor;
     double percentError = 100 * difference->RMSvalue / referencePhasor->RMSvalue;
-    std::cout << "The percent error is " << percentError << "\n";
+    cout << "The percent error is " << percentError << "\n";
 
     TestParameterPhasorCalcAccuracyFreeMemory(referencePhasor, samples, testParameter, difference);
 }
 /// <summary>
 /// Display an error message when the method TestParameterPhasorCalcAccuracy() fails to allocate memory for a variable.
 /// </summary>
-void TestParameterPhasorCalcAccuracyMemoryAllocationFailure(std::string variableName, phasor* referencePhasor,
+void TestParameterPhasorCalcAccuracyMemoryAllocationFailure(string variableName, phasor* referencePhasor,
     instantaneousMeasurement* samples, parameter* testParameter, phasor* difference)
 {
-    std::cout << "Error: TestParameterPhasorCalcAccuracyFreeMemory() failed to allocate memory for " << variableName << "\n";
+    cout << "Error: TestParameterPhasorCalcAccuracyFreeMemory() failed to allocate memory for " << variableName << "\n";
     TestParameterPhasorCalcAccuracyFreeMemory(referencePhasor, samples, testParameter, difference);
 }
 /// <summary>
@@ -1428,7 +246,7 @@ void TestParameterPhasorCalcAccuracyFreeMemory(phasor* referencePhasor, instanta
 }
 
 
-void TestNodeClassMemoryAllocationFailure(std::string, phasor*, int*, nodeSample*);
+void TestNodeClassMemoryAllocationFailure(string, phasor*, int*, nodeSample*);
 void TestNodeClassFreeMemory(phasor*, int*, nodeSample*);
 /// <summary>
 /// Create a sample node and print it.
@@ -1468,9 +286,9 @@ void TestNodeClass()
 /// Display an error message when the method TestNodeClass() fails to allocate memory for a variable.
 /// </summary>
 /// <param name="variableName">The variable the method failed to allocate memory for</param>
-void TestNodeClassMemoryAllocationFailure(std::string variableName, phasor* currents, int* currentDestNodes, nodeSample* testNode)
+void TestNodeClassMemoryAllocationFailure(string variableName, phasor* currents, int* currentDestNodes, nodeSample* testNode)
 {
-    std::cout << "Error: TestNodeClass() failed to allocate memory for " << variableName << "\n";
+    cout << "Error: TestNodeClass() failed to allocate memory for " << variableName << "\n";
     TestNodeClassFreeMemory(currents, currentDestNodes, testNode);
 }
 /// <summary>
@@ -1493,7 +311,7 @@ void TestNodeClassFreeMemory(phasor* currents, int* currentDestNodes, nodeSample
 }
 
 
-void TestLineClassMemoryAllocationFailure(std::string, phasor*, phasor*, int*, int*, nodeSample*, nodeSample*, lineSample*);
+void TestLineClassMemoryAllocationFailure(string, phasor*, phasor*, int*, int*, nodeSample*, nodeSample*, lineSample*);
 void TestLineClassFreeMemory(phasor*, phasor*, int*, int*, nodeSample*, nodeSample*, lineSample*);
 /// <summary>
 /// Create a sample line and print it.
@@ -1568,10 +386,10 @@ void TestLineClass()
 /// Display an error message when the method TestLineClass() fails to allocate memory for a variable.
 /// </summary>
 /// <param name="variableName">The variable the method failed to allocate memory for</param>
-void TestLineClassMemoryAllocationFailure(std::string variableName, phasor* node1Currents, phasor* node2Currents,
+void TestLineClassMemoryAllocationFailure(string variableName, phasor* node1Currents, phasor* node2Currents,
     int* node1CurrentDestNodes, int* node2CurrentDestNodes, nodeSample* node1, nodeSample* node2, lineSample* testLine)
 {
-    std::cout << "Error: TestLineClass() failed to allocate memory for " << variableName << "\n";
+    cout << "Error: TestLineClass() failed to allocate memory for " << variableName << "\n";
     TestLineClassFreeMemory(node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes, node1, node2, testLine);
 }
 /// <summary>
@@ -1613,7 +431,7 @@ void TestLineClassFreeMemory(phasor* node1Currents, phasor* node2Currents, int* 
 }
 
 
-void TestDistanceClassMemoryAllocationFailure(std::string, phasor*, phasor*, phasor*, phasor*, int*, int*, int*, int*,
+void TestDistanceClassMemoryAllocationFailure(string, phasor*, phasor*, phasor*, phasor*, int*, int*, int*, int*,
     nodeSample*, nodeSample*, nodeSample*, nodeSample*, lineSample*, lineSample*, distanceSample*);
 void TestDistanceClassFreeMemory(phasor*, phasor*, phasor*, phasor*, int*, int*, int*, int*,
     nodeSample*, nodeSample*, nodeSample*, nodeSample*, lineSample*, lineSample*, distanceSample*);
@@ -1793,14 +611,14 @@ void TestDistanceClass()
 /// Display an error message when the method TestDistanceClass() fails to allocate memory for a variable.
 /// </summary>
 /// <param name="variableName">The variable the method failed to allocate memory for</param>
-void TestDistanceClassMemoryAllocationFailure(std::string variableName,
+void TestDistanceClassMemoryAllocationFailure(string variableName,
     phasor* sample1Node1Currents, phasor* sample1Node2Currents, phasor* sample2Node1Currents, phasor* sample2Node2Currents,
     int* sample1Node1CurrentDestNodes, int* sample1Node2CurrentDestNodes,
     int* sample2Node1CurrentDestNodes, int* sample2Node2CurrentDestNodes,
     nodeSample* sample1Node1, nodeSample* sample1Node2, nodeSample* sample2Node1, nodeSample* sample2Node2,
     lineSample* sample1, lineSample* sample2, distanceSample* testDistance)
 {
-    std::cout << "Error: TestDistanceClass() failed to allocate memory for " << variableName << "\n";
+    cout << "Error: TestDistanceClass() failed to allocate memory for " << variableName << "\n";
     TestDistanceClassFreeMemory(sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
         sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
         sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
@@ -1882,10 +700,10 @@ void TestDistanceClassFreeMemory(
 }
 
 
-void TestKnnClassMemoryAllocationFailure(std::string, nodeSample**, nodeSample**, phasor*, phasor*, phasor*, phasor*, int*, int*,
-    lineSample**, nodeSample*, nodeSample*, lineSample*, knn*, int, int, int);
+void TestKnnClassMemoryAllocationFailure(string, nodeSample**, nodeSample**, phasor*, phasor*, phasor*, phasor*, int*, int*,
+    lineSample**, nodeSample*, nodeSample*, lineSample*, knnPredictionOfUnknownLineSample*, int, int, int);
 void TestKnnClassFreeMemory(nodeSample**, nodeSample**, phasor*, phasor*, phasor*, phasor*, int*, int*, lineSample**,
-    nodeSample*, nodeSample*, lineSample*, knn*, int, int, int);
+    nodeSample*, nodeSample*, lineSample*, knnPredictionOfUnknownLineSample*, int, int, int);
 /// <summary>
 /// Create a set of 10 line samples with known line statuses where 6 have lines working as well as a random line sample with an unknown
 /// line status. The ones without the line working will be significantly different. 
@@ -1904,7 +722,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
     nodeSample* node1SampleWithUnknownStatus = NULL;
     nodeSample* node2SampleWithUnknownStatus = NULL;
     lineSample* sampleWithUnknownStatus = NULL;
-    knn* testKNN = NULL;
+    knnPredictionOfUnknownLineSample* testKNN = NULL;
 
     int node1Number = 1;
     int node2Number = 2;
@@ -2262,7 +1080,8 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
     sampleWithUnknownStatus = new lineSample(node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, true);
 
 
-    testKNN = new knn(samplesWithKnownStatuses, numberOfSamplesWithKnownStatuses, sampleWithUnknownStatus, 3);
+    testKNN = new knnPredictionOfUnknownLineSample(samplesWithKnownStatuses, numberOfSamplesWithKnownStatuses, sampleWithUnknownStatus);
+    testKNN->ChangeNumberOfNearestNeighbors(3);
     testKNN->Print();
 
     TestKnnClassFreeMemory(node1SamplesWithKnownStatuses, node2SamplesWithKnownStatuses,
@@ -2272,15 +1091,15 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
         node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
         numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
 }
-void TestKnnClassMemoryAllocationFailure(std::string variableName,
+void TestKnnClassMemoryAllocationFailure(string variableName,
     nodeSample** node1SamplesWithKnownStatuses, nodeSample** node2SamplesWithKnownStatuses,
     phasor* node1WorkingCurrentAveragePhasors, phasor* node2WorkingCurrentAveragePhasors,
     phasor* node1NotWorkingCurrentAveragePhasors, phasor* node2NotWorkingCurrentAveragePhasors,
     int* node1CurrentDestNodes, int* node2CurrentDestNodes, lineSample** samplesWithKnownStatuses,
     nodeSample* node1SampleWithUnknownStatus, nodeSample* node2SampleWithUnknownStatus, lineSample* sampleWithUnknownStatus,
-    knn* testKNN, int numberOfSamplesWithKnownStatuses, int numberOfNode1Currents, int numberOfNode2Currents)
+    knnPredictionOfUnknownLineSample* testKNN, int numberOfSamplesWithKnownStatuses, int numberOfNode1Currents, int numberOfNode2Currents)
 {
-    std::cout << "Error: TestKnnClass() failed to allocate memory for " << variableName << "\n";
+    cout << "Error: TestKnnClass() failed to allocate memory for " << variableName << "\n";
     TestKnnClassFreeMemory(node1SamplesWithKnownStatuses, node2SamplesWithKnownStatuses,
         node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
         node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
@@ -2296,7 +1115,7 @@ void TestKnnClassFreeMemory(nodeSample** node1SamplesWithKnownStatuses, nodeSamp
     phasor* node1NotWorkingCurrentAveragePhasors, phasor* node2NotWorkingCurrentAveragePhasors,
     int* node1CurrentDestNodes, int* node2CurrentDestNodes, lineSample** samplesWithKnownStatuses,
     nodeSample* node1SampleWithUnknownStatus, nodeSample* node2SampleWithUnknownStatus, lineSample* sampleWithUnknownStatus,
-    knn* testKNN, int numberOfSamplesWithKnownStatuses, int numberOfNode1Currents, int numberOfNode2Currents)
+    knnPredictionOfUnknownLineSample* testKNN, int numberOfSamplesWithKnownStatuses, int numberOfNode1Currents, int numberOfNode2Currents)
 {
     if (node1SamplesWithKnownStatuses != NULL) {
         for (int deletingIndex = 0; deletingIndex < numberOfSamplesWithKnownStatuses; deletingIndex++) {
