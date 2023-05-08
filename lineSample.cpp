@@ -77,7 +77,7 @@ void lineSample::MemoryAllocationFailure(string variableName)
 /// <param name="node1">The first node of the line</param>
 /// <param name="node2">The second node of the line</param>
 /// <param name="isWorking">The status of the line</param>
-lineSample::lineSample(nodeSample* node1, nodeSample* node2, bool isWorking)
+lineSample::lineSample(shared_ptr<nodeSample> node1, shared_ptr<nodeSample> node2, bool isWorking)
 {
     this->node1 = node1;
     this->node2 = node2;
@@ -147,7 +147,7 @@ lineSample::lineSample(nodeSample* node1, nodeSample* node2, bool isWorking)
     if (node1->NumberOfCurrents <= 1) NumberOfNode1OtherCurrents = 0;
     else {
         NumberOfNode1OtherCurrents = node1->NumberOfCurrents - 1;
-        Node1OtherCurrentsNorm = new parameter * [NumberOfNode1OtherCurrents];
+        Node1OtherCurrentsNorm = new parameter*[NumberOfNode1OtherCurrents];
         if (Node1OtherCurrentsNorm == NULL) {
             MemoryAllocationFailure("Node1OtherCurrentsNorm");
             return;
@@ -162,7 +162,7 @@ lineSample::lineSample(nodeSample* node1, nodeSample* node2, bool isWorking)
                 // Skip the line current
                 if (node1->Currents[currentIndex]->DestinationNodeNumber == node2->NodeNumber) foundCurrent = true;
 
-                else {
+                else if (currentIndex < node1->NumberOfCurrents - 1) {
                     Node1OtherCurrentsNorm[currentIndex] = new parameter();
                     if (Node1OtherCurrentsNorm[currentIndex] == NULL) {
                         MemoryAllocationFailure("Node1OtherCurrentsNorm[currentIndex]");
@@ -205,7 +205,7 @@ lineSample::lineSample(nodeSample* node1, nodeSample* node2, bool isWorking)
             if (foundCurrent == false) {
                 if (node2->Currents[currentIndex]->DestinationNodeNumber == node1->NodeNumber) foundCurrent = true;
 
-                else {
+                else if (currentIndex < node2->NumberOfCurrents - 1) {
                     Node2OtherCurrentsNorm[currentIndex] = new parameter();
                     if (Node2OtherCurrentsNorm[currentIndex] == NULL) {
                         MemoryAllocationFailure("Node2OtherCurrentsNorm[currentIndex]");

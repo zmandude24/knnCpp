@@ -311,8 +311,8 @@ void TestNodeClassFreeMemory(phasor* currents, int* currentDestNodes, nodeSample
 }
 
 
-void TestLineClassMemoryAllocationFailure(string, phasor*, phasor*, int*, int*, nodeSample*, nodeSample*, lineSample*);
-void TestLineClassFreeMemory(phasor*, phasor*, int*, int*, nodeSample*, nodeSample*, lineSample*);
+void TestLineClassMemoryAllocationFailure(string, phasor*, phasor*, int*, int*, lineSample*);
+void TestLineClassFreeMemory(phasor*, phasor*, int*, int*, lineSample*);
 /// <summary>
 /// Create a sample line and print it.
 /// </summary>
@@ -322,8 +322,8 @@ void TestLineClass()
     phasor* node2Currents = NULL;
     int* node1CurrentDestNodes = NULL;
     int* node2CurrentDestNodes = NULL;
-    nodeSample* node1 = NULL;
-    nodeSample* node2 = NULL;
+    shared_ptr<nodeSample> node1 = NULL;
+    shared_ptr<nodeSample> node2 = NULL;
     lineSample* testLine = NULL;
 
     // Node 1
@@ -331,21 +331,21 @@ void TestLineClass()
     node1Currents = new phasor[2];
     if (node1Currents == NULL) {
         TestLineClassMemoryAllocationFailure("node1Currents", node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes,
-            node1, node2, testLine);
+            testLine);
         return;
     }
     node1Currents[0] = phasor(25, -165); node1Currents[1] = phasor(25, 15);
     node1CurrentDestNodes = new int[2];
     if (node1CurrentDestNodes == NULL) {
         TestLineClassMemoryAllocationFailure("node1CurrentDestNodes", node1Currents, node2Currents,
-            node1CurrentDestNodes, node2CurrentDestNodes, node1, node2, testLine);
+            node1CurrentDestNodes, node2CurrentDestNodes, testLine);
         return;
     }
     node1CurrentDestNodes[0] = 0; node1CurrentDestNodes[1] = 2;
-    node1 = new nodeSample(1, node1Voltage, node1Currents, node1CurrentDestNodes, 2);
+    node1 = shared_ptr<nodeSample>(new nodeSample(1, node1Voltage, node1Currents, node1CurrentDestNodes, 2));
     if (node1 == NULL) {
         TestLineClassMemoryAllocationFailure("node1", node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes,
-            node1, node2, testLine);
+            testLine);
         return;
     }
 
@@ -354,49 +354,49 @@ void TestLineClass()
     node2Currents = new phasor[3];
     if (node2Currents == NULL) {
         TestLineClassMemoryAllocationFailure("node2Currents", node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes,
-            node1, node2, testLine);
+            testLine);
         return;
     }
     node2Currents[0] = phasor(25, -165); node2Currents[1] = phasor(15, 15); node2Currents[2] = phasor(10, 15);
     node2CurrentDestNodes = new int[3];
     if (node2CurrentDestNodes == NULL) {
         TestLineClassMemoryAllocationFailure("node2CurrentDestNodes", node1Currents, node2Currents,
-            node1CurrentDestNodes, node2CurrentDestNodes, node1, node2, testLine);
+            node1CurrentDestNodes, node2CurrentDestNodes, testLine);
         return;
     }
     node2CurrentDestNodes[0] = 1; node2CurrentDestNodes[1] = 0; node2CurrentDestNodes[2] = 3;
-    node2 = new nodeSample(2, node2Voltage, node2Currents, node2CurrentDestNodes, 3);
+    node2 = shared_ptr<nodeSample>(new nodeSample(2, node2Voltage, node2Currents, node2CurrentDestNodes, 3));
     if (node2 == NULL) {
         TestLineClassMemoryAllocationFailure("node2", node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes,
-            node1, node2, testLine);
+            testLine);
         return;
     }
 
     testLine = new lineSample(node1, node2, true);
     if (testLine == NULL) {
         TestLineClassMemoryAllocationFailure("testLine", node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes,
-            node1, node2, testLine);
+            testLine);
         return;
     }
     testLine->PrintLine();
 
-    TestLineClassFreeMemory(node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes, node1, node2, testLine);
+    TestLineClassFreeMemory(node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes, testLine);
 }
 /// <summary>
 /// Display an error message when the method TestLineClass() fails to allocate memory for a variable.
 /// </summary>
 /// <param name="variableName">The variable the method failed to allocate memory for</param>
 void TestLineClassMemoryAllocationFailure(string variableName, phasor* node1Currents, phasor* node2Currents,
-    int* node1CurrentDestNodes, int* node2CurrentDestNodes, nodeSample* node1, nodeSample* node2, lineSample* testLine)
+    int* node1CurrentDestNodes, int* node2CurrentDestNodes, lineSample* testLine)
 {
     cout << "Error: TestLineClass() failed to allocate memory for " << variableName << "\n";
-    TestLineClassFreeMemory(node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes, node1, node2, testLine);
+    TestLineClassFreeMemory(node1Currents, node2Currents, node1CurrentDestNodes, node2CurrentDestNodes, testLine);
 }
 /// <summary>
 /// Free allocated memory for the method TestLineClass().
 /// </summary>
 void TestLineClassFreeMemory(phasor* node1Currents, phasor* node2Currents, int* node1CurrentDestNodes, int* node2CurrentDestNodes,
-    nodeSample* node1, nodeSample* node2, lineSample* testLine)
+    lineSample* testLine)
 {
     if (node1Currents != NULL) {
         delete[] node1Currents;
@@ -405,10 +405,6 @@ void TestLineClassFreeMemory(phasor* node1Currents, phasor* node2Currents, int* 
     if (node1CurrentDestNodes != NULL) {
         delete[] node1CurrentDestNodes;
         node1CurrentDestNodes = NULL;
-    }
-    if (node1 != NULL) {
-        delete node1;
-        node1 = NULL;
     }
 
     if (node2Currents != NULL) {
@@ -419,10 +415,6 @@ void TestLineClassFreeMemory(phasor* node1Currents, phasor* node2Currents, int* 
         delete[] node2CurrentDestNodes;
         node2CurrentDestNodes = NULL;
     }
-    if (node2 != NULL) {
-        delete node2;
-        node2 = NULL;
-    }
 
     if (testLine != NULL) {
         delete testLine;
@@ -432,9 +424,9 @@ void TestLineClassFreeMemory(phasor* node1Currents, phasor* node2Currents, int* 
 
 
 void TestDistanceClassMemoryAllocationFailure(string, phasor*, phasor*, phasor*, phasor*, int*, int*, int*, int*,
-    nodeSample*, nodeSample*, nodeSample*, nodeSample*, lineSample*, lineSample*, distanceSample*);
+    lineSample*, lineSample*, distanceSample*);
 void TestDistanceClassFreeMemory(phasor*, phasor*, phasor*, phasor*, int*, int*, int*, int*,
-    nodeSample*, nodeSample*, nodeSample*, nodeSample*, lineSample*, lineSample*, distanceSample*);
+    lineSample*, lineSample*, distanceSample*);
 /// <summary>
 /// Create two line samples and a distance sample from it
 /// </summary>
@@ -448,10 +440,10 @@ void TestDistanceClass()
     int* sample1Node2CurrentDestNodes = NULL;
     int* sample2Node1CurrentDestNodes = NULL;
     int* sample2Node2CurrentDestNodes = NULL;
-    nodeSample* sample1Node1 = NULL;
-    nodeSample* sample1Node2 = NULL;
-    nodeSample* sample2Node1 = NULL;
-    nodeSample* sample2Node2 = NULL;
+    shared_ptr<nodeSample> sample1Node1 = NULL;
+    shared_ptr<nodeSample> sample1Node2 = NULL;
+    shared_ptr<nodeSample> sample2Node1 = NULL;
+    shared_ptr<nodeSample> sample2Node2 = NULL;
     lineSample* sample1 = NULL;
     lineSample* sample2 = NULL;
     distanceSample* testDistance = NULL;
@@ -463,7 +455,7 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample1Node1Currents",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
     sample1Node1Currents[0] = phasor(25, -165); sample1Node1Currents[1] = phasor(25, 15);
@@ -472,16 +464,16 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample1Node1CurrentDestNodes",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
     sample1Node1CurrentDestNodes[0] = 0; sample1Node1CurrentDestNodes[1] = 2;
-    sample1Node1 = new nodeSample(1, sample1Node1Voltage, sample1Node1Currents, sample1Node1CurrentDestNodes, 2);
+    sample1Node1 = shared_ptr<nodeSample>(new nodeSample(1, sample1Node1Voltage, sample1Node1Currents, sample1Node1CurrentDestNodes, 2));
     if (sample1Node1 == NULL) {
         TestDistanceClassMemoryAllocationFailure("sample1Node1",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
 
@@ -492,7 +484,7 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample1Node2Currents",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
     sample1Node2Currents[0] = phasor(25, -165); sample1Node2Currents[1] = phasor(15, 15); sample1Node2Currents[2] = phasor(10, 15);
@@ -501,16 +493,16 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample1Node2CurrentDestNodes",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
     sample1Node2CurrentDestNodes[0] = 1; sample1Node2CurrentDestNodes[1] = 0; sample1Node2CurrentDestNodes[2] = 3;
-    sample1Node2 = new nodeSample(2, sample1Node2Voltage, sample1Node2Currents, sample1Node2CurrentDestNodes, 3);
+    sample1Node2 = shared_ptr<nodeSample>(new nodeSample(2, sample1Node2Voltage, sample1Node2Currents, sample1Node2CurrentDestNodes, 3));
     if (sample1Node2 == NULL) {
         TestDistanceClassMemoryAllocationFailure("sample1Node2",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
 
@@ -520,7 +512,7 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample1",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
 
@@ -531,7 +523,7 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample2Node1Currents",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
     sample2Node1Currents[0] = phasor(25, -165); sample2Node1Currents[1] = phasor(24.75, 15);
@@ -540,16 +532,16 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample2Node1CurrentDestNodes",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
     sample2Node1CurrentDestNodes[0] = 0; sample2Node1CurrentDestNodes[1] = 2;
-    sample2Node1 = new nodeSample(1, sample2Node1Voltage, sample2Node1Currents, sample2Node1CurrentDestNodes, 2);
+    sample2Node1 = shared_ptr<nodeSample>(new nodeSample(1, sample2Node1Voltage, sample2Node1Currents, sample2Node1CurrentDestNodes, 2));
     if (sample2Node1 == NULL) {
         TestDistanceClassMemoryAllocationFailure("sample2Node1",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
 
@@ -560,7 +552,7 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample2Node2Currents",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
     sample2Node2Currents[0] = phasor(25.25, -165); sample2Node2Currents[1] = phasor(15.15, 15); sample2Node2Currents[2] = phasor(10.10, 15);
@@ -569,16 +561,16 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample2Node2CurrentDestNodes",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
     sample2Node2CurrentDestNodes[0] = 1; sample2Node2CurrentDestNodes[1] = 0; sample2Node2CurrentDestNodes[2] = 3;
-    sample2Node2 = new nodeSample(2, sample2Node2Voltage, sample2Node2Currents, sample2Node2CurrentDestNodes, 3);
+    sample2Node2 = shared_ptr<nodeSample>(new nodeSample(2, sample2Node2Voltage, sample2Node2Currents, sample2Node2CurrentDestNodes, 3));
     if (sample2Node2 == NULL) {
         TestDistanceClassMemoryAllocationFailure("sample2Node2",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
 
@@ -588,7 +580,7 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("sample2",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
 
@@ -597,7 +589,7 @@ void TestDistanceClass()
         TestDistanceClassMemoryAllocationFailure("testDistance",
             sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
             sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-            sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+            sample1, sample2, testDistance);
         return;
     }
     testDistance->Print();
@@ -605,7 +597,7 @@ void TestDistanceClass()
     // Free Memory
     TestDistanceClassFreeMemory(sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
         sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-        sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+        sample1, sample2, testDistance);
 }
 /// <summary>
 /// Display an error message when the method TestDistanceClass() fails to allocate memory for a variable.
@@ -615,13 +607,12 @@ void TestDistanceClassMemoryAllocationFailure(string variableName,
     phasor* sample1Node1Currents, phasor* sample1Node2Currents, phasor* sample2Node1Currents, phasor* sample2Node2Currents,
     int* sample1Node1CurrentDestNodes, int* sample1Node2CurrentDestNodes,
     int* sample2Node1CurrentDestNodes, int* sample2Node2CurrentDestNodes,
-    nodeSample* sample1Node1, nodeSample* sample1Node2, nodeSample* sample2Node1, nodeSample* sample2Node2,
     lineSample* sample1, lineSample* sample2, distanceSample* testDistance)
 {
     cout << "Error: TestDistanceClass() failed to allocate memory for " << variableName << "\n";
     TestDistanceClassFreeMemory(sample1Node1Currents, sample1Node2Currents, sample2Node1Currents, sample2Node2Currents,
         sample1Node1CurrentDestNodes, sample1Node2CurrentDestNodes, sample2Node1CurrentDestNodes, sample2Node2CurrentDestNodes,
-        sample1Node1, sample1Node2, sample2Node1, sample2Node2, sample1, sample2, testDistance);
+        sample1, sample2, testDistance);
 }
 /// <summary>
 /// Free allocated memory for the method TestDistanceClass().
@@ -630,7 +621,6 @@ void TestDistanceClassFreeMemory(
     phasor* sample1Node1Currents, phasor* sample1Node2Currents, phasor* sample2Node1Currents, phasor* sample2Node2Currents,
     int* sample1Node1CurrentDestNodes, int* sample1Node2CurrentDestNodes,
     int* sample2Node1CurrentDestNodes, int* sample2Node2CurrentDestNodes,
-    nodeSample* sample1Node1, nodeSample* sample1Node2, nodeSample* sample2Node1, nodeSample* sample2Node2,
     lineSample* sample1, lineSample* sample2, distanceSample* testDistance)
 {
     if (sample1Node1Currents != NULL) {
@@ -641,10 +631,6 @@ void TestDistanceClassFreeMemory(
         delete[] sample1Node1CurrentDestNodes;
         sample1Node1CurrentDestNodes = NULL;
     }
-    if (sample1Node1 != NULL) {
-        delete sample1Node1;
-        sample1Node1 = NULL;
-    }
 
     if (sample1Node2Currents != NULL) {
         delete[] sample1Node2Currents;
@@ -653,10 +639,6 @@ void TestDistanceClassFreeMemory(
     if (sample1Node2CurrentDestNodes != NULL) {
         delete[] sample1Node2CurrentDestNodes;
         sample1Node2CurrentDestNodes = NULL;
-    }
-    if (sample1Node2 != NULL) {
-        delete sample1Node2;
-        sample1Node2 = NULL;
     }
 
     if (sample2Node1Currents != NULL) {
@@ -667,10 +649,6 @@ void TestDistanceClassFreeMemory(
         delete[] sample2Node1CurrentDestNodes;
         sample2Node1CurrentDestNodes = NULL;
     }
-    if (sample2Node1 != NULL) {
-        delete sample2Node1;
-        sample2Node1 = NULL;
-    }
 
     if (sample2Node2Currents != NULL) {
         delete[] sample2Node2Currents;
@@ -679,10 +657,6 @@ void TestDistanceClassFreeMemory(
     if (sample2Node2CurrentDestNodes != NULL) {
         delete[] sample2Node2CurrentDestNodes;
         sample2Node2CurrentDestNodes = NULL;
-    }
-    if (sample2Node2 != NULL) {
-        delete sample2Node2;
-        sample2Node2 = NULL;
     }
 
     if (sample1 != NULL) {
@@ -700,18 +674,18 @@ void TestDistanceClassFreeMemory(
 }
 
 
-void TestKnnClassMemoryAllocationFailure(string, nodeSample**, nodeSample**, phasor*, phasor*, phasor*, phasor*, int*, int*,
-    lineSample**, nodeSample*, nodeSample*, lineSample*, knnPredictionOfUnknownLineSample*, int, int, int);
-void TestKnnClassFreeMemory(nodeSample**, nodeSample**, phasor*, phasor*, phasor*, phasor*, int*, int*, lineSample**,
-    nodeSample*, nodeSample*, lineSample*, knnPredictionOfUnknownLineSample*, int, int, int);
+void TestKnnClassMemoryAllocationFailure(string, shared_ptr<nodeSample>*, shared_ptr<nodeSample>*,
+    phasor*, phasor*, phasor*, phasor*, int*, int*, lineSample**, lineSample*, knnPredictionOfUnknownLineSample*, int, int, int);
+void TestKnnClassFreeMemory(shared_ptr<nodeSample>*, shared_ptr<nodeSample>*, phasor*, phasor*, phasor*, phasor*, int*, int*,
+    lineSample**, lineSample*, knnPredictionOfUnknownLineSample*, int, int, int);
 /// <summary>
 /// Create a set of 10 line samples with known line statuses where 6 have lines working as well as a random line sample with an unknown
 /// line status. The ones without the line working will be significantly different. 
 /// </summary>
 void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
 {
-    nodeSample** node1SamplesWithKnownStatuses = NULL;
-    nodeSample** node2SamplesWithKnownStatuses = NULL;
+    shared_ptr<nodeSample>* node1SamplesWithKnownStatuses = NULL;
+    shared_ptr<nodeSample>* node2SamplesWithKnownStatuses = NULL;
     phasor* node1WorkingCurrentAveragePhasors = NULL;
     phasor* node2WorkingCurrentAveragePhasors = NULL;
     phasor* node1NotWorkingCurrentAveragePhasors = NULL;
@@ -719,8 +693,8 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
     int* node1CurrentDestNodes = NULL;
     int* node2CurrentDestNodes = NULL;
     lineSample** samplesWithKnownStatuses = NULL;
-    nodeSample* node1SampleWithUnknownStatus = NULL;
-    nodeSample* node2SampleWithUnknownStatus = NULL;
+    shared_ptr<nodeSample> node1SampleWithUnknownStatus = NULL;
+    shared_ptr<nodeSample> node2SampleWithUnknownStatus = NULL;
     lineSample* sampleWithUnknownStatus = NULL;
     knnPredictionOfUnknownLineSample* testKNN = NULL;
 
@@ -732,15 +706,14 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
 
 
     // Node 1 Knowns
-    node1SamplesWithKnownStatuses = new nodeSample * [numberOfSamplesWithKnownStatuses];
+    node1SamplesWithKnownStatuses = new shared_ptr<nodeSample>[numberOfSamplesWithKnownStatuses];
     if (node1SamplesWithKnownStatuses == NULL) {
         TestKnnClassMemoryAllocationFailure("node1SamplesWithKnownStatuses",
             node1SamplesWithKnownStatuses, node2SamplesWithKnownStatuses,
             node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
             node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
             node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-            node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-            numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+            sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
         return;
     }
     for (int initializingIndex = 0; initializingIndex < numberOfSamplesWithKnownStatuses; initializingIndex++) {
@@ -757,8 +730,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
             node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
             node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-            node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-            numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+            sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
         return;
     }
     node1WorkingCurrentAveragePhasors[0] = phasor(25, 165);
@@ -771,8 +743,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
             node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
             node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-            node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-            numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+            sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
         return;
     }
     node1NotWorkingCurrentAveragePhasors[0] = phasor(250, -70);
@@ -785,8 +756,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
             node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
             node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-            node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-            numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+            sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
         return;
     }
     node1CurrentDestNodes[0] = 0;
@@ -805,8 +775,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
                 return;
             }
             currents[0] = node1WorkingCurrentAveragePhasors[0] *
@@ -814,15 +783,15 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             currents[1] = node1WorkingCurrentAveragePhasors[1] *
                 phasor(0.9 + 0.2 * (double)sampleIndex / (double)numberOfLinesWorking, 0);
             
-            node1SamplesWithKnownStatuses[sampleIndex] = new nodeSample(node1Number, voltage, currents, node1CurrentDestNodes, 2);
+            node1SamplesWithKnownStatuses[sampleIndex] =
+                shared_ptr<nodeSample>(new nodeSample(node1Number, voltage, currents, node1CurrentDestNodes, 2));
             if (node1SamplesWithKnownStatuses[sampleIndex] == NULL) {
                 TestKnnClassMemoryAllocationFailure("node1SamplesWithKnownStatuses[sampleIndex]",
                     node1SamplesWithKnownStatuses, node2SamplesWithKnownStatuses,
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
                 return;
             }
 
@@ -844,8 +813,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
                 return;
             }
             currents[0] = node1NotWorkingCurrentAveragePhasors[0] *
@@ -853,15 +821,15 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             currents[1] = node1NotWorkingCurrentAveragePhasors[1] *
                 phasor(0.9 + 0.2 * (double)(sampleIndex - numberOfLinesWorking) / (double)numberOfLinesNotWorking, 0);
             
-            node1SamplesWithKnownStatuses[sampleIndex] = new nodeSample(node1Number, voltage, currents, node1CurrentDestNodes, 2);
+            node1SamplesWithKnownStatuses[sampleIndex] = 
+                shared_ptr<nodeSample>(new nodeSample(node1Number, voltage, currents, node1CurrentDestNodes, 2));
             if (node1SamplesWithKnownStatuses[sampleIndex] == NULL) {
                 TestKnnClassMemoryAllocationFailure("node1SamplesWithKnownStatuses[sampleIndex]",
                     node1SamplesWithKnownStatuses, node2SamplesWithKnownStatuses,
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
                 if (currents != NULL) {
                     delete[] currents;
                     currents = NULL;
@@ -878,15 +846,14 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
 
 
     // Node 2 Knowns
-    node2SamplesWithKnownStatuses = new nodeSample * [numberOfSamplesWithKnownStatuses];
+    node2SamplesWithKnownStatuses = new shared_ptr<nodeSample>[numberOfSamplesWithKnownStatuses];
     if (node2SamplesWithKnownStatuses == NULL) {
         TestKnnClassMemoryAllocationFailure("node2SamplesWithKnownStatuses",
             node1SamplesWithKnownStatuses, node2SamplesWithKnownStatuses,
             node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
             node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
             node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-            node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-            numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+            sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
         return;
     }
     for (int initializationIndex = 0; initializationIndex < numberOfSamplesWithKnownStatuses; initializationIndex++) {
@@ -903,8 +870,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
             node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
             node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-            node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-            numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+            sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
         return;
     }
     node2WorkingCurrentAveragePhasors[0] = phasor(25, -15);
@@ -917,8 +883,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
             node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
             node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-            node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-            numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+            sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
         return;
     }
     node2NotWorkingCurrentAveragePhasors[0] = phasor(250, 70);
@@ -931,8 +896,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
             node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
             node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-            node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-            numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+            sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
         return;
     }
     node2CurrentDestNodes[0] = 1; node2CurrentDestNodes[1] = 0;
@@ -950,8 +914,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
                 return;
             }
             currents[0] = node2WorkingCurrentAveragePhasors[0] *
@@ -959,15 +922,15 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             currents[1] = node2WorkingCurrentAveragePhasors[1] *
                 phasor(0.9 + 0.2 * (double)sampleIndex / (double)numberOfLinesWorking, 0);
 
-            node2SamplesWithKnownStatuses[sampleIndex] = new nodeSample(node2Number, voltage, currents, node2CurrentDestNodes, 2);
+            node2SamplesWithKnownStatuses[sampleIndex] = 
+                shared_ptr<nodeSample>(new nodeSample(node2Number, voltage, currents, node2CurrentDestNodes, 2));
             if (node2SamplesWithKnownStatuses[sampleIndex] == NULL) {
                 TestKnnClassMemoryAllocationFailure("node2SamplesWithKnownStatuses[sampleIndex]",
                     node1SamplesWithKnownStatuses, node2SamplesWithKnownStatuses,
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
                 if (currents != NULL) {
                     delete[] currents;
                     currents = NULL;
@@ -993,8 +956,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
                 return;
             }
             currents[0] = node2NotWorkingCurrentAveragePhasors[0] *
@@ -1002,15 +964,15 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             currents[1] = node2NotWorkingCurrentAveragePhasors[1] *
                 phasor(0.9 + 0.2 * (double)(sampleIndex - numberOfLinesWorking) / (double)numberOfLinesNotWorking, 0);
 
-            node2SamplesWithKnownStatuses[sampleIndex] = new nodeSample(node2Number, voltage, currents, node2CurrentDestNodes, 2);
+            node2SamplesWithKnownStatuses[sampleIndex] = 
+                shared_ptr<nodeSample>(new nodeSample(node2Number, voltage, currents, node2CurrentDestNodes, 2));
             if (node2SamplesWithKnownStatuses[sampleIndex] == NULL) {
                 TestKnnClassMemoryAllocationFailure("node2SamplesWithKnownStatuses[sampleIndex]",
                     node1SamplesWithKnownStatuses, node2SamplesWithKnownStatuses,
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
                 return;
             }
 
@@ -1030,8 +992,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
             node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
             node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
             node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-            node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-            numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+            sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
         return;
     }
     for (int initializationIndex = 0; initializationIndex < numberOfSamplesWithKnownStatuses; initializationIndex++) {
@@ -1049,8 +1010,7 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
                 return;
             }
         }
@@ -1065,18 +1025,17 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
                     node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
                     node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
                     node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-                    node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-                    numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+                    sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
             }
         }
     }
 
 
     // unknown
-    node1SampleWithUnknownStatus = new nodeSample(node1Number, node1WorkingVoltageAveragePhasor,
-        node1WorkingCurrentAveragePhasors, node1CurrentDestNodes, 2);
-    node2SampleWithUnknownStatus = new nodeSample(node2Number, node2WorkingVoltageAveragePhasor,
-        node2WorkingCurrentAveragePhasors, node2CurrentDestNodes, 2);
+    node1SampleWithUnknownStatus = shared_ptr<nodeSample>(new nodeSample(node1Number, node1WorkingVoltageAveragePhasor,
+        node1WorkingCurrentAveragePhasors, node1CurrentDestNodes, 2));
+    node2SampleWithUnknownStatus = shared_ptr<nodeSample>(new nodeSample(node2Number, node2WorkingVoltageAveragePhasor,
+        node2WorkingCurrentAveragePhasors, node2CurrentDestNodes, 2));
     sampleWithUnknownStatus = new lineSample(node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, true);
 
 
@@ -1088,15 +1047,14 @@ void TestKnnClass(int numberOfLinesWorking = 6, int numberOfLinesNotWorking = 4)
         node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
         node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
         node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-        node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-        numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+        sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
 }
 void TestKnnClassMemoryAllocationFailure(string variableName,
-    nodeSample** node1SamplesWithKnownStatuses, nodeSample** node2SamplesWithKnownStatuses,
+    shared_ptr<nodeSample>* node1SamplesWithKnownStatuses, shared_ptr<nodeSample>* node2SamplesWithKnownStatuses,
     phasor* node1WorkingCurrentAveragePhasors, phasor* node2WorkingCurrentAveragePhasors,
     phasor* node1NotWorkingCurrentAveragePhasors, phasor* node2NotWorkingCurrentAveragePhasors,
     int* node1CurrentDestNodes, int* node2CurrentDestNodes, lineSample** samplesWithKnownStatuses,
-    nodeSample* node1SampleWithUnknownStatus, nodeSample* node2SampleWithUnknownStatus, lineSample* sampleWithUnknownStatus,
+    lineSample* sampleWithUnknownStatus,
     knnPredictionOfUnknownLineSample* testKNN, int numberOfSamplesWithKnownStatuses, int numberOfNode1Currents, int numberOfNode2Currents)
 {
     cout << "Error: TestKnnClass() failed to allocate memory for " << variableName << "\n";
@@ -1104,26 +1062,19 @@ void TestKnnClassMemoryAllocationFailure(string variableName,
         node1WorkingCurrentAveragePhasors, node2WorkingCurrentAveragePhasors,
         node1NotWorkingCurrentAveragePhasors, node2NotWorkingCurrentAveragePhasors,
         node1CurrentDestNodes, node2CurrentDestNodes, samplesWithKnownStatuses,
-        node1SampleWithUnknownStatus, node2SampleWithUnknownStatus, sampleWithUnknownStatus, testKNN,
-        numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
+        sampleWithUnknownStatus, testKNN, numberOfSamplesWithKnownStatuses, numberOfNode1Currents, numberOfNode2Currents);
 }
 /// <summary>
 /// Free allocated memory for the method TestKnnClass().
 /// </summary>
-void TestKnnClassFreeMemory(nodeSample** node1SamplesWithKnownStatuses, nodeSample** node2SamplesWithKnownStatuses,
+void TestKnnClassFreeMemory(shared_ptr<nodeSample>* node1SamplesWithKnownStatuses, shared_ptr<nodeSample>* node2SamplesWithKnownStatuses,
     phasor* node1WorkingCurrentAveragePhasors, phasor* node2WorkingCurrentAveragePhasors,
     phasor* node1NotWorkingCurrentAveragePhasors, phasor* node2NotWorkingCurrentAveragePhasors,
     int* node1CurrentDestNodes, int* node2CurrentDestNodes, lineSample** samplesWithKnownStatuses,
-    nodeSample* node1SampleWithUnknownStatus, nodeSample* node2SampleWithUnknownStatus, lineSample* sampleWithUnknownStatus,
+    lineSample* sampleWithUnknownStatus,
     knnPredictionOfUnknownLineSample* testKNN, int numberOfSamplesWithKnownStatuses, int numberOfNode1Currents, int numberOfNode2Currents)
 {
     if (node1SamplesWithKnownStatuses != NULL) {
-        for (int deletingIndex = 0; deletingIndex < numberOfSamplesWithKnownStatuses; deletingIndex++) {
-            if (node1SamplesWithKnownStatuses[deletingIndex] != NULL) {
-                delete node1SamplesWithKnownStatuses[deletingIndex];
-                node1SamplesWithKnownStatuses[deletingIndex] = NULL;
-            }
-        }
         delete[] node1SamplesWithKnownStatuses;
         node1SamplesWithKnownStatuses = NULL;
     }
@@ -1141,12 +1092,6 @@ void TestKnnClassFreeMemory(nodeSample** node1SamplesWithKnownStatuses, nodeSamp
     }
 
     if (node2SamplesWithKnownStatuses != NULL) {
-        for (int deletingIndex = 0; deletingIndex < numberOfSamplesWithKnownStatuses; deletingIndex++) {
-            if (node2SamplesWithKnownStatuses[deletingIndex] != NULL) {
-                delete node2SamplesWithKnownStatuses[deletingIndex];
-                node2SamplesWithKnownStatuses[deletingIndex] = NULL;
-            }
-        }
         delete[] node2SamplesWithKnownStatuses;
         node2SamplesWithKnownStatuses = NULL;
     }
@@ -1168,14 +1113,6 @@ void TestKnnClassFreeMemory(nodeSample** node1SamplesWithKnownStatuses, nodeSamp
         samplesWithKnownStatuses = NULL;
     }
 
-    if (node1SampleWithUnknownStatus != NULL) {
-        delete node1SampleWithUnknownStatus;
-        node1SampleWithUnknownStatus = NULL;
-    }
-    if (node2SampleWithUnknownStatus != NULL) {
-        delete node2SampleWithUnknownStatus;
-        node2SampleWithUnknownStatus = NULL;
-    }
     if (sampleWithUnknownStatus != NULL) {
         delete sampleWithUnknownStatus;
         sampleWithUnknownStatus = NULL;

@@ -21,11 +21,11 @@ private:
     /// <summary>
     /// The first node the line is connected to
     /// </summary>
-    nodeSample* node1 = NULL;
+    shared_ptr<nodeSample> node1 = NULL;
     /// <summary>
     /// The second node the line is connected to
     /// </summary>
-    nodeSample* node2 = NULL;
+    shared_ptr<nodeSample> node2 = NULL;
 
     void FreeMemory();
     void MemoryAllocationFailure(string variableName);
@@ -70,7 +70,7 @@ public:
     /// </summary>
     bool IsWorking = true;
 
-    lineSample(nodeSample* node1, nodeSample* node2, bool isWorking);
+    lineSample(shared_ptr<nodeSample> node1, shared_ptr<nodeSample> node2, bool isWorking);
     ~lineSample();
     
     void PrintLine();
