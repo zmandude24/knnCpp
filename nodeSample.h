@@ -12,6 +12,7 @@ using namespace std;
 #include "instantaneousMeasurement.h"
 #include "parameter.h"
 
+
 /// <summary>
 /// The data representation of a point on the grid in a specified time range with the voltage and the currents coming from it.
 /// </summary>
@@ -47,8 +48,11 @@ public:
 
     nodeSample(int nodeNumber, parameter* voltage, parameter** currents, int numberOfCurrents);
     nodeSample(int nodeNumber, phasor voltage, phasor* currents, int* currentDestinationNodes, int numberOfCurrents);
+    nodeSample(int nodeNumber, phasor voltage, phasor current1, int current1DestinationNode,
+        phasor current2, int current2DestinationNode);
+    nodeSample(int nodeNumber, phasor voltage, phasor current1, int current1DestinationNode,
+        phasor current2, int current2DestinationNode, phasor current3, int current3DestinationNode);
     ~nodeSample();
 
     void PrintNode();
 };
-

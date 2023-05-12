@@ -68,6 +68,7 @@ double parameter::PhaseAngleDegrees(double rms)
     return phaseAngleDegrees;
 }
 
+
 /// <summary>
 /// Free the dynamically allocated memory and set their pointers to NULL.
 /// </summary>
@@ -88,6 +89,7 @@ void parameter::MemoryAllocationFailure(string variableName)
     cout << "Error: node() failed to allocate memory for " << variableName << "\n";
     FreeMemory();
 }
+
 
 /// <summary>
 /// The default constructor setting all values to their defaults
@@ -112,4 +114,43 @@ parameter::parameter(instantaneousMeasurement* samples, int numberOfSamples, str
     Units = units;
     StartNodeNumber = startNodeNumber;
     DestinationNodeNumber = destinationNodeNumber;
+}
+/// <summary>
+/// This constructor doesn't involve a set of instantaneous measurements.
+/// </summary>
+/// <param name="phasorr">The phasor representation of the parameter</param>
+/// <param name="name">The name to be used for the parameter</param>
+/// <param name="units">The base unit suffix</param>
+/// <param name="startNodeNumber">The starting node number (0 is ground)</param>
+/// <param name="destinationNodeNumber">The destination node number (0 is ground)</param>
+parameter::parameter(phasor phasorr, string name = "", string units = "", int startNodeNumber = 0, int destinationNodeNumber = 0)
+{
+    Samples = NULL;
+    NumberOfSamples = 0;
+    Phasor = phasorr;
+    Name = name;
+    Units = units;
+    StartNodeNumber = startNodeNumber;
+    DestinationNodeNumber = destinationNodeNumber;
+}
+
+/// <summary>
+/// This will free everything in its pointers
+/// </summary>
+parameter::~parameter()
+{
+    FreeMemory();
+}
+
+
+/// <summary>
+/// Print the name, number of samples, phasor, and the starting and destination node numbers.
+/// </summary>
+void parameter::PrintParameter()
+{
+    cout << "\nName: " << Name << "\n";
+    cout << "Number of samples: " << NumberOfSamples << "\n";
+    cout << "Phasor: " << Phasor.PhasorToString() << Units << "\n";
+    cout << "Starting Node: " << to_string(StartNodeNumber) + "\n";
+    cout << "Destination Node: " << to_string(DestinationNodeNumber) + "\n";
 }

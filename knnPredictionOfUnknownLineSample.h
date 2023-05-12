@@ -54,7 +54,7 @@ public:
     bool PredictedStatus = true;
 
     knnPredictionOfUnknownLineSample(lineSample** samplesWithKnownStatuses, int numberOfKnownStatuses,
-        lineSample* sampleWithUnknownStatus);
+        lineSample* sampleWithUnknownStatus, int numberOfNearestNeighbors = 5);
     ~knnPredictionOfUnknownLineSample();
 
     void ChangeNumberOfNearestNeighbors(int numberOfNearestNeighbors);

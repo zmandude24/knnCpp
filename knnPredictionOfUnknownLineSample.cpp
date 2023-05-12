@@ -150,14 +150,16 @@ void knnPredictionOfUnknownLineSample::MemoryAllocationFailure(string variableNa
 /// <param name="samplesWithKnownStatuses">The array of line samples with known line statuses</param>
 /// <param name="numberOfKnownStatuses">The number of elements in the samplesWithKnownStatuses array</param>
 /// <param name="sampleWithUnknownStatus">A line sample with an unknown line status</param>
+/// <param name="numberOfNearestNeighbors">The number of nearest neighbors the unknown sample is compared to for the prediction</param>
 knnPredictionOfUnknownLineSample::knnPredictionOfUnknownLineSample(lineSample** samplesWithKnownStatuses, int numberOfKnownStatuses,
-    lineSample* sampleWithUnknownStatus)
+    lineSample* sampleWithUnknownStatus, int numberOfNearestNeighbors)
 {
     SamplesWithKnownStatuses = samplesWithKnownStatuses;
     NumberOfKnownStatuses = numberOfKnownStatuses;
     SampleWithUnknownStatus = sampleWithUnknownStatus;
+    this->numberOfNearestNeighbors = numberOfNearestNeighbors;
     SetDistances();
-    this->PredictedStatus = PredictStatus();
+    PredictedStatus = PredictStatus();
 }
 
 /// <summary>

@@ -56,42 +56,8 @@ public:
     parameter();
     parameter(instantaneousMeasurement* samples, int numberOfSamples, string name, string units,
         int startNodeNumber, int destinationNodeNumber);
-    /// <summary>
-    /// This constructor doesn't involve a set of instantaneous measurements.
-    /// </summary>
-    /// <param name="phasorr">The phasor representation of the parameter</param>
-    /// <param name="name">The name to be used for the parameter</param>
-    /// <param name="units">The base unit suffix</param>
-    /// <param name="startNodeNumber">The starting node number (0 is ground)</param>
-    /// <param name="destinationNodeNumber">The destination node number (0 is ground)</param>
-    parameter(phasor phasorr, string name = "", string units = "",
-        int startNodeNumber = 0, int destinationNodeNumber = 0)
-    {
-        Samples = NULL;
-        NumberOfSamples = 0;
-        Phasor = phasorr;
-        Name = name;
-        Units = units;
-        StartNodeNumber = startNodeNumber;
-        DestinationNodeNumber = destinationNodeNumber;
-    }
-    /// <summary>
-    /// This will free everything in its pointers
-    /// </summary>
-    ~parameter()
-    {
-        FreeMemory();
-    }
+    parameter(phasor phasorr, string name, string units, int startNodeNumber, int destinationNodeNumber);
+    ~parameter();
 
-    /// <summary>
-    /// Print the name, number of samples, phasor, and the starting and destination node numbers.
-    /// </summary>
-    void PrintParameter()
-    {
-        cout << "\nName: " << Name << "\n";
-        cout << "Number of samples: " << NumberOfSamples << "\n";
-        cout << "Phasor: " << Phasor.PhasorToString() << Units << "\n";
-        cout << "Starting Node: " << to_string(StartNodeNumber) + "\n";
-        cout << "Destination Node: " << to_string(DestinationNodeNumber) + "\n";
-    }
+    void PrintParameter();
 };

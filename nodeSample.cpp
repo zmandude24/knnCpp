@@ -11,6 +11,7 @@ using namespace std;
 #include "parameter.h"
 #include "nodeSample.h"
 
+
 /// <summary>
 /// Free the dynamically allocated memory and set their pointers to NULL.
 /// </summary>
@@ -99,6 +100,92 @@ nodeSample::nodeSample(int nodeNumber, phasor voltage, phasor* currents, int* cu
         }
     }
     NumberOfCurrents = numberOfCurrents;
+}
+/// <summary>
+/// A specific constructor for a node with two currents
+/// </summary>
+/// <param name="nodeNumber">The unique identifying number for the node</param>
+/// <param name="voltage">The voltage phasor for the node</param>
+/// <param name="current1">The first current phasor</param>
+/// <param name="current1DestinationNode">The first current's destination node number</param>
+/// <param name="current2">The second current phasor</param>
+/// <param name="current2DestinationNode">The second current's destination node number</param>
+nodeSample::nodeSample(int nodeNumber, phasor voltage, phasor current1, int current1DestinationNode,
+    phasor current2, int current2DestinationNode)
+{
+    NodeNumber = nodeNumber;
+
+    Voltage = new parameter(voltage, "V" + to_string(nodeNumber), "V", nodeNumber, 0);
+    if (Voltage == NULL) {
+        MemoryAllocationFailure("Voltage");
+        return;
+    }
+
+    NumberOfCurrents = 2;   // This constructor is for specifically two currents.
+    Currents = new parameter*[NumberOfCurrents];
+    if (Currents == NULL) {
+        MemoryAllocationFailure("Currents");
+        return;
+    }
+    Currents[0] = new parameter(current1, "I" + to_string(nodeNumber) + to_string(current1DestinationNode), "A",
+        nodeNumber, current1DestinationNode);
+    if (Currents[0] == NULL) {
+        MemoryAllocationFailure("Currents[0]");
+        return;
+    }
+    Currents[1] = new parameter(current2, "I" + to_string(nodeNumber) + to_string(current2DestinationNode), "A",
+        nodeNumber, current2DestinationNode);
+    if (Currents[1] == NULL) {
+        MemoryAllocationFailure("Currents[1]");
+        return;
+    }
+}
+/// <summary>
+/// A specific constructor for a node with three currents
+/// </summary>
+/// <param name="nodeNumber">The unique identifying number for the node</param>
+/// <param name="voltage">The voltage phasor for the node</param>
+/// <param name="current1">The first current phasor</param>
+/// <param name="current1DestinationNode">The first current's destination node number</param>
+/// <param name="current2">The second current phasor</param>
+/// <param name="current2DestinationNode">The second current's destination node number</param>
+/// <param name="current3">The third current phasor</param>
+/// <param name="current3DestinationNode">The third current's destination node number</param>
+nodeSample::nodeSample(int nodeNumber, phasor voltage, phasor current1, int current1DestinationNode,
+    phasor current2, int current2DestinationNode, phasor current3, int current3DestinationNode)
+{
+    NodeNumber = nodeNumber;
+
+    Voltage = new parameter(voltage, "V" + to_string(nodeNumber), "V", nodeNumber, 0);
+    if (Voltage == NULL) {
+        MemoryAllocationFailure("Voltage");
+        return;
+    }
+
+    NumberOfCurrents = 3;   // This constructor is for specifically three currents.
+    Currents = new parameter*[NumberOfCurrents];
+    if (Currents == NULL) {
+        MemoryAllocationFailure("Currents");
+        return;
+    }
+    Currents[0] = new parameter(current1, "I" + to_string(nodeNumber) + to_string(current1DestinationNode), "A",
+        nodeNumber, current1DestinationNode);
+    if (Currents[0] == NULL) {
+        MemoryAllocationFailure("Currents[0]");
+        return;
+    }
+    Currents[1] = new parameter(current2, "I" + to_string(nodeNumber) + to_string(current2DestinationNode), "A",
+        nodeNumber, current2DestinationNode);
+    if (Currents[1] == NULL) {
+        MemoryAllocationFailure("Currents[1]");
+        return;
+    }
+    Currents[2] = new parameter(current3, "I" + to_string(nodeNumber) + to_string(current3DestinationNode), "A",
+        nodeNumber, current3DestinationNode);
+    if (Currents[2] == NULL) {
+        MemoryAllocationFailure("Currents[2]");
+        return;
+    }
 }
 
 /// <summary>
