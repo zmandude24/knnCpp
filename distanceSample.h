@@ -48,7 +48,7 @@ public:
     /// </summary>
     bool IsWorking = true;
 
-    distanceSample(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus);
+    explicit distanceSample(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus);
     ~distanceSample();
 
     void Print();

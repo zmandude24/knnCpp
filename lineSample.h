@@ -70,7 +70,7 @@ public:
     /// </summary>
     bool IsWorking = true;
 
-    lineSample(shared_ptr<nodeSample> node1, shared_ptr<nodeSample> node2, bool isWorking);
+    explicit lineSample(shared_ptr<nodeSample> node1, shared_ptr<nodeSample> node2, bool isWorking);
     ~lineSample();
     
     void PrintLine();

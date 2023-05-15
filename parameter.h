@@ -53,10 +53,10 @@ public:
     /// </summary>
     int DestinationNodeNumber = 0;
 
-    parameter();
-    parameter(instantaneousMeasurement* samples, int numberOfSamples, string name, string units,
+    explicit parameter();
+    explicit parameter(instantaneousMeasurement* samples, int numberOfSamples, string name, string units,
         int startNodeNumber, int destinationNodeNumber);
-    parameter(phasor phasorr, string name, string units, int startNodeNumber, int destinationNodeNumber);
+    explicit parameter(phasor phasorr, string name, string units, int startNodeNumber, int destinationNodeNumber);
     ~parameter();
 
     void PrintParameter();

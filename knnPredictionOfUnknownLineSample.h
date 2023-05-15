@@ -53,7 +53,7 @@ public:
     /// </summary>
     bool PredictedStatus = true;
 
-    knnPredictionOfUnknownLineSample(lineSample** samplesWithKnownStatuses, int numberOfKnownStatuses,
+    explicit knnPredictionOfUnknownLineSample(lineSample** samplesWithKnownStatuses, int numberOfKnownStatuses,
         lineSample* sampleWithUnknownStatus, int numberOfNearestNeighbors = 5);
     ~knnPredictionOfUnknownLineSample();
 

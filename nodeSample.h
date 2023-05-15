@@ -46,11 +46,11 @@ public:
     /// </summary>
     double RatedCurrent = 25;
 
-    nodeSample(int nodeNumber, parameter* voltage, parameter** currents, int numberOfCurrents);
-    nodeSample(int nodeNumber, phasor voltage, phasor* currents, int* currentDestinationNodes, int numberOfCurrents);
-    nodeSample(int nodeNumber, phasor voltage, phasor current1, int current1DestinationNode,
+    explicit nodeSample(int nodeNumber, parameter* voltage, parameter** currents, int numberOfCurrents);
+    explicit nodeSample(int nodeNumber, phasor voltage, phasor* currents, int* currentDestinationNodes, int numberOfCurrents);
+    explicit nodeSample(int nodeNumber, phasor voltage, phasor current1, int current1DestinationNode,
         phasor current2, int current2DestinationNode);
-    nodeSample(int nodeNumber, phasor voltage, phasor current1, int current1DestinationNode,
+    explicit nodeSample(int nodeNumber, phasor voltage, phasor current1, int current1DestinationNode,
         phasor current2, int current2DestinationNode, phasor current3, int current3DestinationNode);
     ~nodeSample();
 

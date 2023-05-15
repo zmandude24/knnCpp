@@ -37,8 +37,8 @@ public:
     /// </summary>
     double PhaseAngleDegrees = 0;
 
-    phasor();
-    phasor(double rmsValue, double phaseAngleDegrees);
+    explicit phasor();
+    explicit phasor(double rmsValue, double phaseAngleDegrees);
 
     void Print();
     string PhasorToString();
