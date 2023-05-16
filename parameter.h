@@ -19,9 +19,9 @@ class parameter {
 private:
     phasor CalculatePhasor();
     double RMS();
-    double PhaseAngleDegrees(double rms);
+    double PhaseAngleDegrees(double);
     void FreeMemory();
-    void MemoryAllocationFailure(string variableName);
+    void MemoryAllocationFailure(string);
 
 public:
     /// <summary>
@@ -54,9 +54,8 @@ public:
     int DestinationNodeNumber = 0;
 
     explicit parameter();
-    explicit parameter(instantaneousMeasurement* samples, int numberOfSamples, string name, string units,
-        int startNodeNumber, int destinationNodeNumber);
-    explicit parameter(phasor phasorr, string name, string units, int startNodeNumber, int destinationNodeNumber);
+    explicit parameter(instantaneousMeasurement*, int, string, string, int, int);
+    explicit parameter(phasor, string, string, int, int);
     ~parameter();
 
     void PrintParameter();

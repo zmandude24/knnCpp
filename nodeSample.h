@@ -18,6 +18,15 @@ using namespace std;
 /// </summary>
 class nodeSample {
 private:
+    /// <summary>
+    /// The default rated voltage
+    /// </summary>
+    const double defaultRatedVoltage = 250000;
+    /// <summary>
+    /// The default rated current
+    /// </summary>
+    const double defaultRatedCurrent = 25;
+
     void FreeMemory();
     void MemoryAllocationFailure(string variableName);
 public:
@@ -40,11 +49,11 @@ public:
     /// <summary>
     /// The rated voltage (typically the voltage at peak normal usage of the grid)
     /// </summary>
-    double RatedVoltage = 250000;
+    double RatedVoltage = defaultRatedVoltage;
     /// <summary>
     /// The rated current (typically the magnitude for a two line node at peak normal usage of the grid)
     /// </summary>
-    double RatedCurrent = 25;
+    double RatedCurrent = defaultRatedCurrent;
 
     explicit nodeSample(int nodeNumber, parameter* voltage, parameter** currents, int numberOfCurrents);
     explicit nodeSample(int nodeNumber, phasor voltage, phasor* currents, int* currentDestinationNodes, int numberOfCurrents);

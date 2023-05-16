@@ -43,9 +43,9 @@ public:
     void Print();
     string PhasorToString();
 
-    phasor operator+(const phasor& p2);
-    phasor operator-(const phasor& p2);
-    phasor operator*(const phasor& p2);
-    phasor operator/(const phasor& p2);
-    phasor Pow(phasor base, double power);
+    const phasor operator+(const phasor& p2);
+    const phasor operator-(const phasor& p2);
+    const phasor operator*(const phasor& p2);
+    const phasor operator/(const phasor& p2);
+    const phasor Pow(phasor base, double power);
 };

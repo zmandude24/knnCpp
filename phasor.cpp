@@ -74,7 +74,7 @@ string phasor::PhasorToString()
 /// <summary>
 /// Use '+' to add two phasors together like you would with two numbers.
 /// </summary>
-phasor phasor::operator+(const phasor& p2)
+const phasor phasor::operator+(const phasor& p2)
 {
     phasor sum;
     sum.real = this->real + p2.real;
@@ -85,7 +85,7 @@ phasor phasor::operator+(const phasor& p2)
 /// <summary>
 /// Use '-' to subtract the right phasor from the left phasor like you would with two numbers.
 /// </summary>
-phasor phasor::operator-(const phasor& p2)
+const phasor phasor::operator-(const phasor& p2)
 {
     phasor difference;
     difference.real = this->real - p2.real;
@@ -96,7 +96,7 @@ phasor phasor::operator-(const phasor& p2)
 /// <summary>
 /// Use '*' to multiply two phasors like you would with two numbers.
 /// </summary>
-phasor phasor::operator*(const phasor& p2)
+const phasor phasor::operator*(const phasor& p2)
 {
     phasor product;
     product.RMSvalue = this->RMSvalue * p2.RMSvalue;
@@ -113,7 +113,7 @@ phasor phasor::operator*(const phasor& p2)
 /// Use '/' to divide the left phasor by the right phasor like you would with two numbers. In the division by zero case, an
 /// error message will be printed and the zero phasor will be returned.
 /// </summary>
-phasor phasor::operator/(const phasor& p2)
+const phasor phasor::operator/(const phasor& p2)
 {
     phasor quotient(0, 0);
 
@@ -144,7 +144,7 @@ phasor phasor::operator/(const phasor& p2)
 /// <param name="base">The phasor to be raised to a power</param>
 /// <param name="power">The exponent or power to raise the phasor to</param>
 /// <returns>The phasor with the power applied</returns>
-phasor phasor::Pow(phasor base, double power)
+const phasor phasor::Pow(phasor base, double power)
 {
     phasor exponent = phasor(0, 0);
 

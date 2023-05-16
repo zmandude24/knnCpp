@@ -42,15 +42,14 @@ public:
     /// <summary>
     /// The distance between the line with a known output and the line with the unknown output
     /// </summary>
-    double Distance = 10000000000;
+    double Distance = 1000000000;
     /// <summary>
     /// The status of the known line
     /// </summary>
     bool IsWorking = true;
 
-    explicit distanceSample(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus);
+    distanceSample(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus);
     ~distanceSample();
 
     void Print();
 };
-
