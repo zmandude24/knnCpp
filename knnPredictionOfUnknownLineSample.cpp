@@ -14,46 +14,7 @@ using namespace std;
 #include "knnPredictionOfUnknownLineSample.h"
 
 
-/// <summary>
-/// Sorts the array of distances when a new distance is added to the tail end of the list
-/// </summary>
-/// <param name="knownSampleIndex">The index of the knowns the constructor is currently at</param>
-void knnPredictionOfUnknownLineSample::SortDistances(int knownSampleIndex) {
-    // Place the new entry on the proper place on the array
-    int lastNearestNeighborIndex = numberOfNearestNeighbors - 1;
-    if (knownSampleIndex < numberOfNearestNeighbors - 1) lastNearestNeighborIndex = knownSampleIndex;
-
-    for (int nearestNeighborsIndex = lastNearestNeighborIndex; nearestNeighborsIndex > 0; nearestNeighborsIndex--) {
-        // If the distance is less than it's predescesor, swap their positions
-        if (distances[nearestNeighborsIndex]->Distance < distances[nearestNeighborsIndex - 1]->Distance) {
-            distanceSample* dummy = new distanceSample(SamplesWithKnownStatuses[knownSampleIndex], SampleWithUnknownStatus);
-            *dummy = *distances[nearestNeighborsIndex - 1];
-            *distances[nearestNeighborsIndex - 1] = *distances[nearestNeighborsIndex];
-            *distances[nearestNeighborsIndex] = *dummy;
-            delete dummy; dummy = NULL;
-        }
-    }
-}
-
-/// <summary>
-/// Predicts the line status of the unknown line sample. It will return false in the case of a tie, but k is usually odd and
-/// the statuses of the nearest neighbors are unanimous in virtually every case.
-/// </summary>
-/// <returns>The predicted status of the unknown line sample</returns>
-bool knnPredictionOfUnknownLineSample::PredictStatus() {
-    int numOfWorkingLines = 0;
-    int numOfNotWorkingLines = 0;
-
-    for (int nearestNeighborIndex = 0; nearestNeighborIndex < numberOfNearestNeighbors; nearestNeighborIndex++) {
-        if (distances[nearestNeighborIndex]->IsWorking == true) numOfWorkingLines += 1;
-        else numOfNotWorkingLines += 1;
-    }
-
-    if (numOfWorkingLines > numOfNotWorkingLines) return true;
-    else return false;
-}
-
-void knnPredictionOfUnknownLineSample::SetDistances()
+const void knnPredictionOfUnknownLineSample::SetDistances()
 {
     if (numberOfNearestNeighbors > NumberOfKnownStatuses) {
         cout << "Error: The number of nearest neighbors is larger than the number of known statuses.\n";
@@ -71,7 +32,7 @@ void knnPredictionOfUnknownLineSample::SetDistances()
         distances = NULL;
     }
 
-    distances = new distanceSample*[numberOfNearestNeighbors];
+    distances = new distanceSample * [numberOfNearestNeighbors];
     if (distances == NULL) {
         MemoryAllocationFailure("distances");
         return;
@@ -114,12 +75,37 @@ void knnPredictionOfUnknownLineSample::SetDistances()
         }
     }
 }
+const void knnPredictionOfUnknownLineSample::SortDistances(int knownSampleIndex) {
+    // Place the new entry on the proper place on the array
+    int lastNearestNeighborIndex = numberOfNearestNeighbors - 1;
+    if (knownSampleIndex < numberOfNearestNeighbors - 1) lastNearestNeighborIndex = knownSampleIndex;
+
+    for (int nearestNeighborsIndex = lastNearestNeighborIndex; nearestNeighborsIndex > 0; nearestNeighborsIndex--) {
+        // If the distance is less than it's predescesor, swap their positions
+        if (distances[nearestNeighborsIndex]->Distance < distances[nearestNeighborsIndex - 1]->Distance) {
+            distanceSample* dummy = new distanceSample(SamplesWithKnownStatuses[knownSampleIndex], SampleWithUnknownStatus);
+            *dummy = *distances[nearestNeighborsIndex - 1];
+            *distances[nearestNeighborsIndex - 1] = *distances[nearestNeighborsIndex];
+            *distances[nearestNeighborsIndex] = *dummy;
+            delete dummy; dummy = NULL;
+        }
+    }
+}
+const bool knnPredictionOfUnknownLineSample::PredictStatus() {
+    int numOfWorkingLines = 0;
+    int numOfNotWorkingLines = 0;
+
+    for (int nearestNeighborIndex = 0; nearestNeighborIndex < numberOfNearestNeighbors; nearestNeighborIndex++) {
+        if (distances[nearestNeighborIndex]->IsWorking == true) numOfWorkingLines += 1;
+        else numOfNotWorkingLines += 1;
+    }
+
+    if (numOfWorkingLines > numOfNotWorkingLines) return true;
+    else return false;
+}
 
 
-/// <summary>
-/// Free the dynamically allocated memory and set their pointers to NULL. Notice that only distanceSample** distances is freed.
-/// </summary>
-void knnPredictionOfUnknownLineSample::FreeMemory()
+const void knnPredictionOfUnknownLineSample::FreeMemory()
 {
     if (distances != NULL) {
         for (int freeingIndex = 0; freeingIndex < numberOfNearestNeighbors; freeingIndex++) {
@@ -133,24 +119,14 @@ void knnPredictionOfUnknownLineSample::FreeMemory()
     }
 }
 
-/// <summary>
-/// Display an error message and call FreeMemory().
-/// </summary>
-/// <param=variableName>The name of the variable that failed to get memory allocation</param>
-void knnPredictionOfUnknownLineSample::MemoryAllocationFailure(string variableName)
+const void knnPredictionOfUnknownLineSample::MemoryAllocationFailure(string variableName)
 {
     cout << "Error: node() failed to allocate memory for " << variableName << "\n";
     FreeMemory();
 }
 
 
-/// <summary>
-/// The constructor (default nearest neighbors is 5 and you have to set a different number with ChangeNumberOfNearestNeighbors())
-/// </summary>
-/// <param name="samplesWithKnownStatuses">The array of line samples with known line statuses</param>
-/// <param name="numberOfKnownStatuses">The number of elements in the samplesWithKnownStatuses array</param>
-/// <param name="sampleWithUnknownStatus">A line sample with an unknown line status</param>
-/// <param name="numberOfNearestNeighbors">The number of nearest neighbors the unknown sample is compared to for the prediction</param>
+
 knnPredictionOfUnknownLineSample::knnPredictionOfUnknownLineSample(lineSample** samplesWithKnownStatuses, int numberOfKnownStatuses,
     lineSample* sampleWithUnknownStatus, int numberOfNearestNeighbors)
 {
@@ -162,20 +138,13 @@ knnPredictionOfUnknownLineSample::knnPredictionOfUnknownLineSample(lineSample** 
     PredictedStatus = PredictStatus();
 }
 
-/// <summary>
-/// The deconstructor
-/// </summary>
 knnPredictionOfUnknownLineSample::~knnPredictionOfUnknownLineSample()
 {
     FreeMemory();
 }
 
 
-/// <summary>
-/// Change the number of nearest neighbors and recalculate the nearest neighbors.
-/// </summary>
-/// <param name="numberOfNearestNeighbors">The new number of nearest neighbors</param>
-void knnPredictionOfUnknownLineSample::ChangeNumberOfNearestNeighbors(int numberOfNearestNeighbors)
+const void knnPredictionOfUnknownLineSample::ChangeNumberOfNearestNeighbors(int numberOfNearestNeighbors)
 {
     // Don't bother recalculating if the number of nearest neighbors won't change.
     if (this->numberOfNearestNeighbors == numberOfNearestNeighbors) return;
@@ -184,10 +153,8 @@ void knnPredictionOfUnknownLineSample::ChangeNumberOfNearestNeighbors(int number
     SetDistances();
 }
 
-/// <summary>
-/// Print the distances of the nearest neighbors and the line status prediction.
-/// </summary>
-void knnPredictionOfUnknownLineSample::Print()
+
+const void knnPredictionOfUnknownLineSample::Print()
 {
     cout << "\nKNN Algorithm:\n";
     for (int i = 0; i < numberOfNearestNeighbors; i++) cout << "distances[" << to_string(i) << "] distance: " <<

@@ -27,8 +27,19 @@ private:
     /// </summary>
     shared_ptr<nodeSample> node2 = NULL;
 
-    void FreeMemory();
-    void MemoryAllocationFailure(string variableName);
+
+    /// <summary>
+    /// Free the dynamically allocated memory and set their pointers to NULL.
+    /// </summary>
+    const void FreeMemory();
+
+    /// <summary>
+    /// Display an error message and call FreeMemory().
+    /// </summary>
+    /// <param=variableName>The name of the variable that failed to get memory allocation</param>
+    const void MemoryAllocationFailure(string variableName);
+
+
 public:
     /// <summary>
     /// The normalized (magnitude divided by the current rating) current flowing through the line from node 1
@@ -70,9 +81,23 @@ public:
     /// </summary>
     bool IsWorking = true;
 
+
+    /// <summary>
+    /// The constructor
+    /// </summary>
+    /// <param name="node1">The first node of the line</param>
+    /// <param name="node2">The second node of the line</param>
+    /// <param name="isWorking">The status of the line</param>
     explicit lineSample(shared_ptr<nodeSample> node1, shared_ptr<nodeSample> node2, bool isWorking);
+
+    /// <summary>
+    /// The deconstructor
+    /// </summary>
     ~lineSample();
     
-    void PrintLine();
-};
 
+    /// <summary>
+    /// Print the nodes, line status, and normalized parameters.
+    /// </summary>
+    const void PrintLine();
+};

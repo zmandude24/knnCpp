@@ -12,11 +12,7 @@ using namespace std;
 #include "lineSample.h"
 
 
-/// <summary>
-/// Free the dynamically allocated memory and set their pointers to NULL. Notice that nodeSample* node1 and nodeSample* node2
-/// are not freed here.
-/// </summary>
-void lineSample::FreeMemory()
+const void lineSample::FreeMemory()
 {
     if (Node1LineCurrentNorm != NULL) {
         delete Node1LineCurrentNorm;
@@ -60,23 +56,14 @@ void lineSample::FreeMemory()
     }
 }
 
-/// <summary>
-/// Display an error message and call FreeMemory().
-/// </summary>
-/// <param=variableName>The name of the variable that failed to get memory allocation</param>
-void lineSample::MemoryAllocationFailure(string variableName)
+const void lineSample::MemoryAllocationFailure(string variableName)
 {
     cout << "Error: node() failed to allocate memory for " << variableName << "\n";
     FreeMemory();
 }
 
 
-/// <summary>
-/// The constructor
-/// </summary>
-/// <param name="node1">The first node of the line</param>
-/// <param name="node2">The second node of the line</param>
-/// <param name="isWorking">The status of the line</param>
+
 lineSample::lineSample(shared_ptr<nodeSample> node1, shared_ptr<nodeSample> node2, bool isWorking)
 {
     this->node1 = node1;
@@ -231,19 +218,13 @@ lineSample::lineSample(shared_ptr<nodeSample> node1, shared_ptr<nodeSample> node
     }
 }
 
-/// <summary>
-/// The deconstructor (notice that the node pointers don't have their memory freed here)
-/// </summary>
 lineSample::~lineSample()
 {
     FreeMemory();
 }
 
 
-/// <summary>
-/// Print the nodes, line status, and normalized parameters.
-/// </summary>
-void lineSample::PrintLine()
+const void lineSample::PrintLine()
 {
     cout << "\nNode 1:\n";
     node1->PrintNode();

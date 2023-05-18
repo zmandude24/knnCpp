@@ -36,8 +36,25 @@ private:
     /// </summary>
     double wOther = 1;
 
-    bool AreSamplesOfTheSameLine(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus);
-    double CalculateDistance(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus);
+
+    /// <summary>
+    /// Verify if the line samples are samples of the same line.
+    /// </summary>
+    /// <param name="known">The line sample with the status known</param>
+    /// <param name="unknown">The line sample with the status unknown</param>
+    /// <returns>True if the samples are of the same line</returns>
+    const bool AreSamplesOfTheSameLine(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus);
+
+    /// <summary>
+    /// Calculate the weighted euclidean distance between the parameters. This method assumes the two line samples were checked to be
+    /// of the same line beforehand.
+    /// </summary>
+    /// <param name="sampleWithKnownStatus">The line sample with the line status known</param>
+    /// <param name="sampleWithUnknownStatus">The line sample with the line status unknown</param>
+    /// <returns>The weighted euclidean distance</returns>
+    const double CalculateDistance(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus);
+
+
 public:
     /// <summary>
     /// The distance between the line with a known output and the line with the unknown output
@@ -48,8 +65,21 @@ public:
     /// </summary>
     bool IsWorking = true;
 
+
+    /// <summary>
+    /// The constructor
+    /// </summary>
+    /// <param name="sampleWithKnownStatus">the line sample with a known line status</param>
+    /// <param name="sampleWithUnknownStatus">the line sample with an unknown line status</param>
     distanceSample(lineSample* sampleWithKnownStatus, lineSample* sampleWithUnknownStatus);
+
+    /// <summary>
+    /// The deconstructor (frees nothing)
+    /// </summary>
     ~distanceSample();
 
-    void Print();
+    /// <summary>
+    /// Print the attached known line, weights, distance, and the status of the known line.
+    /// </summary>
+    const void Print();
 };

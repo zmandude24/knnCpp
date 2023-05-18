@@ -142,7 +142,7 @@ void TestZeroToNonPositivePowerException()
         TestZeroToNonPositivePowerExceptionMemoryAllocationFailure("pexp", ph, pexp);
         return;
     }
-    *pexp = ph->Pow(*ph, 0);
+    *pexp = ph->Pow(0);
 
     TestZeroToNonPositivePowerExceptionFreeMemory(ph, pexp);
 }
